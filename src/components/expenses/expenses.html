@@ -1,0 +1,85 @@
+<section class="card" id="expenses-card">
+  <div class="card-head">
+    <h2>Dépenses</h2>
+    <div class="head-actions">
+      <button id="import-btn" @click="$dispatch('open-import')">⬆️ Importer CSV</button>
+      <button id="del-selected" :disabled="!selected.length" @click="removeSelected()"
+              x-text="selected.length ? `🗑️ Supprimer la sélection (${selected.length})` : '🗑️ Supprimer la sélection'"></button>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table id="expenses">
+      <thead>
+        <tr>
+          <template x-for="col in columns" :key="col.key">
+            <th :class="'cell-' + col.cell">
+              <template x-if="col.cell === 'select'">
+                <input type="checkbox" id="select-all" title="Tout sélectionner" aria-label="Tout sélectionner"
+                       :checked="allSelected" @change="toggleAll()">
+              </template>
+              <template x-if="col.filter">
+                <select class="th-filter" :id="'filter-' + col.filter.key" :class="{ active: filters[col.filter.key] }"
+                        :aria-label="'Filtrer par ' + col.label" x-model="filters[col.filter.key]">
+                  <option value="" :selected="!filters[col.filter.key]" x-text="col.label"></option>
+                  <template x-for="o in optionsFor(col.filter.options)" :key="o.value">
+                    <option :value="o.value" :selected="o.value === filters[col.filter.key]" x-text="o.label"></option>
+                  </template>
+                </select>
+              </template>
+              <template x-if="!col.filter && col.cell !== 'select'">
+                <span x-text="col.label"></span>
+              </template>
+            </th>
+          </template>
+        </tr>
+      </thead>
+      <tbody id="rows">
+        <template x-for="e in rows" :key="e.id">
+          <tr>
+            <template x-for="col in columns" :key="col.key">
+              <td :class="'cell-' + col.cell">
+                <template x-if="col.cell === 'select'">
+                  <input type="checkbox" :data-select="e.id" :aria-label="'Sélectionner ' + e.label"
+                         :checked="selected.includes(e.id)" @change="toggle(e.id)">
+                </template>
+                <template x-if="col.cell === 'text'"><span x-text="e[col.key]"></span></template>
+                <template x-if="col.cell === 'money'"><span x-text="$fmt.eur(e.amount)"></span></template>
+                <template x-if="col.cell === 'comment'"><span x-text="e.comment"></span></template>
+                <template x-if="col.cell === 'split'">
+                  <div class="split-list">
+                    <template x-for="m in participants(e)" :key="m">
+                      <span class="chip"><span x-text="m"></span> <b x-text="$fmt.eur(e.split[m])"></b></span>
+                    </template>
+                  </div>
+                </template>
+                <template x-if="col.cell === 'payment'">
+                  <button class="badge" :class="paymentInfo(e).cls" :data-toggle-due="e.id"
+                          x-text="paymentInfo(e).label" @click="togglePayment(e)"></button>
+                </template>
+                <template x-if="col.cell === 'order'">
+                  <button class="badge" :class="orderInfo(e.order).cls" :data-cycle-order="e.id"
+                          x-text="orderInfo(e.order).label" @click="cycleOrder(e)"></button>
+                </template>
+                <template x-if="col.cell === 'actions'">
+                  <span class="row-actions">
+                    <button class="link" :aria-label="'Modifier ' + e.label" :data-edit="e.id" @click="edit(e)">✏️</button>
+                    <button class="link" :aria-label="'Supprimer ' + e.label" :data-del="e.id" @click="remove(e)">🗑️</button>
+                  </span>
+                </template>
+              </td>
+            </template>
+          </tr>
+        </template>
+        <tr x-show="!rows.length"><td class="muted" :colspan="columns.length">Aucune dépense</td></tr>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td :colspan="amountIndex">Total</td>
+          <td class="cell-money" id="expenses-total" x-text="$fmt.eur(total)"></td>
+          <td :colspan="columns.length - amountIndex - 1"></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</section>

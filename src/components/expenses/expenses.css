@@ -1,0 +1,13 @@
+td.cell-comment { max-width:220px; color:var(--muted); font-size:.85rem; white-space:pre-wrap; }
+td.cell-split { width:1%; white-space:nowrap; }
+.split-list { display:flex; flex-direction:column; align-items:flex-start; gap:.3rem; }
+th.cell-money, td.cell-money { text-align:right; white-space:nowrap; }
+.row-actions { white-space:nowrap; }
+.badge { display:inline-block; padding:.15rem .7rem; border-radius:999px; font-size:.78rem; font-weight:600; }
+.b-ok { color:var(--ok); } .b-warn { color:var(--warn); } .b-bad { color:var(--red); } .b-na { color:var(--muted); }
+
+/* Header cells double as filters: the select looks like the column title and highlights when active. */
+.th-filter { padding:.2rem 1.2rem .2rem .1rem; background:transparent; box-shadow:none; color:var(--muted); font-size:.72rem; font-weight:600; text-transform:uppercase; letter-spacing:.07em; cursor:pointer; border-radius:8px; }
+.th-filter:focus { box-shadow:0 0 0 2px var(--accent); }
+.th-filter.active { color:var(--accent2); background:rgba(45,212,255,.1); padding-left:.5rem; }
+.th-filter option { background:var(--bg); color:var(--text); text-transform:none; letter-spacing:0; font-weight:400; }

@@ -1,0 +1,6 @@
+.item-list { list-style:none; padding:0; margin:.3rem 0; }
+.item { display:flex; flex-wrap:wrap; align-items:center; gap:.4rem .8rem; padding:.55rem .1rem; border-bottom:1px solid var(--border); }
+.item:last-child { border-bottom:none; }
+.item .item-field { display:contents; }
+.item .chips { flex:1; }
+.item .icon-btn { margin-left:auto; }

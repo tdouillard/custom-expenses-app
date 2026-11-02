@@ -1,0 +1,30 @@
+<dialog x-ref="dlg" id="import-dlg">
+  <div class="stack-form">
+    <h2>Importer un CSV</h2>
+    <p class="hint">Colonnes attendues : Cadeau, Montant, Payé par (+ Restant, Statut).</p>
+    <p class="muted" x-show="!$store.data.eventNames.length">Créez d'abord un événement.</p>
+    <label>Événement des dépenses importées
+      <select name="event" x-model="event">
+        <template x-for="n in $store.data.eventNames" :key="n">
+          <option :value="n" :selected="n === event" x-text="n"></option>
+        </template>
+      </select>
+    </label>
+    <label>Fichier CSV
+      <input type="file" id="import-file" accept=".csv,text/csv" :disabled="!event" @change="pick($event)">
+    </label>
+    <div class="form-error" role="alert" id="import-error" x-cloak x-show="error" x-text="error"></div>
+    <template x-if="result">
+      <div class="form-info" role="status" id="import-result">
+        <p x-text="`${result.added} dépense(s) importée(s).`"></p>
+        <template x-if="result.skipped.length">
+          <div>
+            <p>Ignorées :</p>
+            <ul><template x-for="s in result.skipped" :key="s"><li x-text="s"></li></template></ul>
+          </div>
+        </template>
+      </div>
+    </template>
+    <menu><button class="primary" type="button" @click="closeDialog()">Fermer</button></menu>
+  </div>
+</dialog>

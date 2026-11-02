@@ -1,0 +1,8 @@
+<header class="app-header">
+  <h1>💸 Dépenses &amp; remboursements</h1>
+  <div class="header-actions">
+    <span class="muted user-email" x-text="$store.auth.user?.email"></span>
+    <button class="primary" id="add-expense" @click="$dispatch('open-expense')">+ Ajouter une dépense</button>
+    <button id="sign-out" @click="$store.auth.signOut()">Déconnexion</button>
+  </div>
+</header>

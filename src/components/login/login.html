@@ -1,0 +1,20 @@
+<section class="login-wrap">
+  <form class="card login-card" @submit.prevent="$store.auth.submit()">
+    <h1>💸 Dépenses &amp; remboursements</h1>
+    <h2 x-text="$store.auth.mode === 'login' ? 'Connexion' : 'Créer un compte'"></h2>
+    <label>Email
+      <input type="email" name="email" autocomplete="email" required x-model="$store.auth.email">
+    </label>
+    <label>Mot de passe
+      <input type="password" name="password" minlength="6" required
+             :autocomplete="$store.auth.mode === 'login' ? 'current-password' : 'new-password'"
+             x-model="$store.auth.password">
+    </label>
+    <div class="form-error" role="alert" x-cloak x-show="$store.auth.error" x-text="$store.auth.error"></div>
+    <div class="form-info" role="status" x-cloak x-show="$store.auth.info" x-text="$store.auth.info"></div>
+    <button class="primary" type="submit" :disabled="$store.auth.busy"
+            x-text="$store.auth.mode === 'login' ? 'Se connecter' : 'Créer le compte'"></button>
+    <button class="link" type="button" id="toggle-mode" @click="$store.auth.toggleMode()"
+            x-text="$store.auth.mode === 'login' ? 'Pas de compte ? Créer un compte' : 'Déjà un compte ? Se connecter'"></button>
+  </form>
+</section>

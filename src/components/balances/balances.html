@@ -1,0 +1,21 @@
+<section class="card">
+  <h2>Balances</h2>
+  <p class="muted" x-show="!$store.data.state.members.length">Ajoutez des membres pour commencer.</p>
+  <div class="balances" id="balances">
+    <template x-for="r in $store.data.balanceRows" :key="r.member">
+      <div class="bal">
+        <b x-text="r.member"></b>
+        <span class="amt" :class="$fmt.signClass(r.balance)" x-text="$fmt.signedEur(r.balance)"></span>
+        <span class="muted" x-text="r.label"></span>
+      </div>
+    </template>
+  </div>
+  <h3>Pour tout régler</h3>
+  <ul id="transfers">
+    <template x-for="t in $store.data.transfers" :key="t.from + t.to">
+      <li><b x-text="t.from"></b> → <b x-text="t.to"></b> : <span x-text="$fmt.eur(t.amount)"></span></li>
+    </template>
+    <li class="muted" x-show="!$store.data.transfers.length">Tout est réglé 🎉</li>
+  </ul>
+  <p class="hint">Solde projeté : toutes les dépenses sont prises en compte, payées ou non.</p>
+</section>

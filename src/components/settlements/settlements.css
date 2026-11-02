@@ -1,0 +1,8 @@
+.settle-list { list-style:none; padding:0; margin:.4rem 0 0; }
+.settle-row { display:grid; grid-template-columns:1fr auto auto; grid-template-areas:"who amt del" "date date date"; align-items:center; gap:0 .6rem; padding:.6rem .1rem; border-bottom:1px solid var(--border); }
+.settle-row:last-child { border-bottom:none; }
+.settle-who { grid-area:who; display:flex; gap:.4rem; align-items:center; }
+.settle-who .arrow { color:var(--muted); }
+.settle-amt { grid-area:amt; font-weight:700; font-variant-numeric:tabular-nums; color:var(--accent2); }
+.settle-row button { grid-area:del; color:var(--muted); }
+.settle-date { grid-area:date; font-size:.78rem; }

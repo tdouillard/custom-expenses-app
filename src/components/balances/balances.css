@@ -1,0 +1,4 @@
+.balances { display:flex; gap:1rem; flex-wrap:wrap; }
+.bal { flex:1; min-width:150px; border-radius:16px; padding:.8rem 1rem; box-shadow:var(--inset); }
+.bal b { display:block; font-weight:600; }
+.bal .amt { font-size:1.3rem; font-weight:700; letter-spacing:-.02em; font-variant-numeric:tabular-nums; }

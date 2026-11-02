@@ -1,0 +1,28 @@
+<section class="card collection-card" :id="kind + '-card'">
+  <div class="card-head">
+    <h2 x-text="config.title"></h2>
+    <button class="icon-btn" :id="'edit-' + kind" :title="'Modifier : ' + config.title" :aria-label="'Modifier ' + config.title"
+            @click="edit()">✏️</button>
+  </div>
+  <ul class="item-list">
+    <template x-for="row in rows" :key="row.index">
+      <li class="item">
+        <b x-text="row.item.name"></b>
+        <template x-for="f in extraFields" :key="f.key">
+          <span class="item-field">
+            <template x-if="f.type === 'date'">
+              <span class="muted" x-text="$fmt.fmtDate(row.item[f.key]) || 'Sans date'"></span>
+            </template>
+            <template x-if="f.type === 'tags'">
+              <span class="chips">
+                <template x-for="p in row.item[f.key]" :key="p"><span class="chip" x-text="p"></span></template>
+                <span class="muted" x-show="!row.item[f.key].length">Aucune personne</span>
+              </span>
+            </template>
+          </span>
+        </template>
+      </li>
+    </template>
+    <li class="muted" x-show="!rows.length" x-text="config.emptyText"></li>
+  </ul>
+</section>

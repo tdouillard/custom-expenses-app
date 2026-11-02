@@ -1,0 +1,81 @@
+<dialog x-ref="dlg" id="manage-dlg">
+  <h2 x-text="config.title"></h2>
+
+  <div x-show="view === 'list'">
+    <ul class="item-list" id="manage-list">
+      <template x-for="row in rows" :key="row.index">
+        <li class="item">
+          <b x-text="row.item.name"></b>
+          <template x-for="f in extraFields" :key="f.key">
+            <span class="item-field">
+              <template x-if="f.type === 'date'">
+                <span class="muted" x-text="$fmt.fmtDate(row.item[f.key]) || 'Sans date'"></span>
+              </template>
+              <template x-if="f.type === 'tags'">
+                <span class="chips">
+                  <template x-for="p in row.item[f.key]" :key="p"><span class="chip" x-text="p"></span></template>
+                  <span class="muted" x-show="!row.item[f.key].length">Aucune personne</span>
+                </span>
+              </template>
+            </span>
+          </template>
+          <button class="icon-btn" :title="'Modifier ' + row.item.name" :aria-label="'Modifier ' + row.item.name"
+                  @click="startEdit(row.index, row.item)">✏️</button>
+        </li>
+      </template>
+      <li class="muted" x-show="!rows.length" x-text="config.emptyText"></li>
+    </ul>
+    <menu>
+      <button type="button" id="manage-add" @click="add()" x-text="`+ Ajouter un ${config.singular}`"></button>
+      <button class="primary" type="button" id="manage-close" @click="closeDialog()">Fermer</button>
+    </menu>
+  </div>
+
+  <template x-if="view === 'edit'">
+    <form @submit.prevent="save()">
+      <h3 x-text="editing ? `Modifier « ${draft.name} »` : `Nouveau ${config.singular}`"></h3>
+      <template x-for="f in config.fields" :key="f.key">
+        <div class="field">
+          <template x-if="f.type === 'text'">
+            <label><span x-text="f.label"></span>
+              <input :name="f.key" x-model="draft[f.key]" :required="f.required">
+            </label>
+          </template>
+          <template x-if="f.type === 'date'">
+            <label><span x-text="f.label"></span>
+              <input type="date" :name="f.key" x-model="draft[f.key]">
+            </label>
+          </template>
+          <template x-if="f.type === 'tags'">
+            <fieldset>
+              <legend x-text="f.label"></legend>
+              <div class="chips">
+                <template x-for="(p, i) in draft[f.key]" :key="p">
+                  <span class="chip"><span x-text="p"></span>
+                    <button type="button" class="link" :aria-label="'Retirer ' + p" @click="removeTag(f, i)">✕</button>
+                  </span>
+                </template>
+                <span class="muted" x-show="!draft[f.key].length">Aucune personne</span>
+              </div>
+              <div class="inline">
+                <input :name="f.key + '-input'" list="member-names" :placeholder="f.placeholder"
+                       x-model="tagInputs[f.key]" @keydown.enter.prevent="addTags(f)">
+                <button type="button" @click="addTags(f)">Ajouter</button>
+              </div>
+            </fieldset>
+          </template>
+        </div>
+      </template>
+      <div class="form-error" role="alert" id="manage-error" x-cloak x-show="error" x-text="error"></div>
+      <menu>
+        <button type="button" class="danger" id="manage-delete" x-show="editing" @click="remove()">Supprimer</button>
+        <button type="button" id="manage-back" @click="back()">Retour</button>
+        <button class="primary" type="submit">Enregistrer</button>
+      </menu>
+    </form>
+  </template>
+
+  <datalist id="member-names">
+    <template x-for="m in $store.data.state.members" :key="m"><option :value="m"></option></template>
+  </datalist>
+</dialog>

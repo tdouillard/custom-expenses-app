@@ -1,0 +1,71 @@
+<dialog x-ref="dlg" id="expense-dlg">
+  <template x-if="form">
+    <form @submit.prevent="submit()" @input="recompute()" @change="recompute()">
+      <h2 id="dlg-title" x-text="title"></h2>
+      <label>Libellé <input name="label" x-model="form.label" required></label>
+      <label>Événement / catégorie
+        <select name="event" x-model="form.event" @change="onEventChange()">
+          <template x-for="n in $store.data.eventNames" :key="n">
+            <option :value="n" :selected="n === form.event" x-text="n"></option>
+          </template>
+          <option :value="NEW_EVENT" :selected="form.event === NEW_EVENT">＋ Nouvel événement…</option>
+        </select>
+      </label>
+      <div class="new-event" x-show="form.event === NEW_EVENT">
+        <label>Nom du nouvel événement <input name="newEvent" x-model="form.newEvent.name"></label>
+        <label>Date <input name="newEventDate" type="date" x-model="form.newEvent.date"></label>
+        <label>Pour (personnes, séparées par des virgules) <input name="newEventPeople" x-model="form.newEvent.people"></label>
+      </div>
+      <label>Pour (optionnel)
+        <select name="recipient" x-model="form.recipient">
+          <option value="" :selected="!form.recipient">— personne —</option>
+          <template x-for="p in recipients" :key="p">
+            <option :value="p" :selected="p === form.recipient" x-text="p"></option>
+          </template>
+        </select>
+      </label>
+      <label>Payé par
+        <select name="paidBy" x-model="form.paidBy">
+          <template x-for="m in state.members" :key="m">
+            <option :value="m" :selected="m === form.paidBy" x-text="m"></option>
+          </template>
+        </select>
+      </label>
+      <label>Montant (€) <input name="amount" type="number" step="0.01" min="0" required x-model="form.amount"></label>
+      <label class="check"><input name="due" type="checkbox" x-model="form.due"> Paiement encore à effectuer</label>
+      <label>Commande
+        <select name="order" x-model="form.order">
+          <template x-for="o in orders" :key="o.value">
+            <option :value="o.value" :selected="o.value === form.order" x-text="o.label"></option>
+          </template>
+        </select>
+      </label>
+      <label>Commentaire <input name="comment" x-model="form.comment"></label>
+      <fieldset>
+        <legend>Répartition
+          <select id="split-mode" x-model="form.mode">
+            <option value="equal" :selected="form.mode === 'equal'">Égale</option>
+            <option value="custom" :selected="form.mode === 'custom'">Personnalisée</option>
+          </select>
+        </legend>
+        <div id="split-rows">
+          <template x-for="(s, m) in form.split" :key="m">
+            <div class="split-row">
+              <input type="checkbox" :data-m="m" :aria-label="'Participe : ' + m" x-model="s.on">
+              <span x-text="m"></span>
+              <input type="number" step="0.01" min="0" :data-amt="m" :aria-label="'Part de ' + m"
+                     x-model="s.amount" :readonly="form.mode === 'equal' || !s.on">
+            </div>
+          </template>
+        </div>
+        <div id="split-sum" class="hint" :class="{ neg: !splitMatches }"
+             x-text="`Total réparti : ${$fmt.eur(splitTotal)} / ${$fmt.eur(amount)}`"></div>
+      </fieldset>
+      <div class="form-error" role="alert" id="expense-error" x-cloak x-show="error" x-text="error"></div>
+      <menu>
+        <button type="button" id="cancel-expense" @click="closeDialog()">Annuler</button>
+        <button class="primary" type="submit">Enregistrer</button>
+      </menu>
+    </form>
+  </template>
+</dialog>

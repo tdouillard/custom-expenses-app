@@ -1,0 +1,15 @@
+.app-header { position:sticky; top:0; z-index:10; display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap; padding:.9rem 2rem;
+  background:rgba(14,20,38,.7); backdrop-filter:blur(14px); border-bottom:1px solid var(--border); box-shadow:0 8px 30px rgba(0,0,0,.35); }
+.app-header h1 { margin:0; font-size:1.25rem; font-weight:700; letter-spacing:-.02em; background:var(--grad); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.header-actions { display:flex; align-items:center; gap:.7rem; flex-wrap:wrap; }
+
+main.dashboard { max-width:1400px; margin:2rem auto; padding:0 1rem; display:grid; grid-template-columns:1fr; gap:1.1rem; }
+.dashboard > * { display:block; min-width:0; }
+.dashboard > * > .card { height:100%; margin:0; }
+.dashboard > .stack { display:grid; gap:1.1rem; align-content:start; }
+@media (min-width:900px) {
+  main.dashboard { grid-template-columns:repeat(12, minmax(0, 1fr)); }
+  .dashboard > .span-4 { grid-column:span 4; }
+  .dashboard > .span-8 { grid-column:span 8; }
+  .dashboard > .span-12 { grid-column:span 12; }
+}

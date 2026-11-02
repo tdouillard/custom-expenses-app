@@ -1,0 +1,2 @@
+#manage-dlg { width:min(560px, 95vw); overflow-y:auto; }
+#manage-dlg .field { display:grid; }

@@ -1,0 +1,25 @@
+{
+  "name": "custom-expenses-app",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Shared expenses, gifts and reimbursements. Static Alpine.js front-end with Supabase auth and storage, deployable on GitHub Pages.",
+  "scripts": {
+    "start": "node scripts/dev-server.js",
+    "config": "node scripts/build-config.js",
+    "vendor": "node scripts/vendor.js",
+    "db:setup": "node scripts/setup-db.js",
+    "db:import": "node scripts/import-state.js",
+    "test": "node --test tests/unit/*.test.js",
+    "test:e2e": "playwright test",
+    "test:all": "npm test && npm run test:e2e"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "alpinejs": "^3.17.5",
+    "pg": "^8.23.1"
+  }
+}
+
+
