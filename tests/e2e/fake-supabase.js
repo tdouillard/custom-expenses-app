@@ -12,7 +12,6 @@ export async function fakeSupabase(page, { confirmed = true } = {}) {
       if (body.password === 'wrongpass') return json(400, { error_code: 'invalid_credentials' });
       return json(200, session);
     }
-    if (url.includes('/signup')) return json(200, confirmed ? user : session);
     return json(204, null);
   });
 

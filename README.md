@@ -25,11 +25,13 @@ Site : https://tdouillard.github.io/custom-expenses-app/ (branche `dev`, dossier
 
 Le mot de passe de la base ne sert qu'aux scripts locaux ; il n'est jamais envoyé au navigateur ni commité.
 
-Importer des données existantes (après création du compte) : `npm run db:import -- <email> [state.json]`.
+Importer des données existantes (le compte doit déjà exister) : `npm run db:import -- <email> [state.json]`.
 
 ## Authentification
 
-Dans Supabase → Authentication → URL Configuration, ajouter l'URL du site GitHub Pages comme *Site URL* / *Redirect URL* pour que les emails de confirmation reviennent sur l'application.
+L'application ne propose que la connexion : les comptes se créent directement dans Supabase (Authentication → Users → Add user). Pour empêcher toute inscription via l'API, désactiver aussi *Allow new users to sign up* dans Supabase → Authentication → Sign In / Providers → Email.
+
+Dans Supabase → Authentication → URL Configuration, ajouter l'URL du site GitHub Pages comme *Site URL* / *Redirect URL*.
 
 ## Tests
 

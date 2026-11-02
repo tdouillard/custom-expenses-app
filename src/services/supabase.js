@@ -81,17 +81,6 @@ export class SupabaseClient {
     return this.user;
   }
 
-  /* Resolves { confirmationRequired } depending on whether the project auto-confirms new accounts. */
-  async signUp(email, password, redirectTo = '') {
-    const query = redirectTo ? `?redirect_to=${encodeURIComponent(redirectTo)}` : '';
-    const data = await this.#call(`/auth/v1/signup${query}`, { method: 'POST', body: { email, password } });
-    if (data?.access_token) {
-      this.#storeTokens(data);
-      return { confirmationRequired: false };
-    }
-    return { confirmationRequired: true };
-  }
-
   async signOut() {
     const token = this.session?.access_token;
     this.#writeSession(null);

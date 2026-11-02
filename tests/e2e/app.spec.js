@@ -11,14 +11,13 @@ test('shows the login form and rejects bad credentials', async ({ page }) => {
   await expect(page.getByRole('alert')).toContainText('incorrect');
 });
 
-test('sign up asks for email confirmation', async ({ page }) => {
+test('does not offer account creation', async ({ page }) => {
   await fakeSupabase(page);
   await page.goto('/');
-  await page.click('#toggle-mode');
-  await page.fill('input[name=email]', 'new@example.com');
-  await page.fill('input[name=password]', 'secret123');
-  await page.click('button[type=submit]');
-  await expect(page.getByRole('status')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Connexion' })).toBeVisible();
+  await expect(page.locator('#toggle-mode')).toHaveCount(0);
+  await expect(page.getByText('Créer un compte')).toHaveCount(0);
+  await expect(page.locator('input[name=password]')).toHaveAttribute('autocomplete', 'current-password');
 });
 
 test('logs in to an empty dashboard and loads without console errors', async ({ page }) => {

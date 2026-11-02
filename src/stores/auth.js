@@ -3,11 +3,9 @@ export function createAuthStore(client, { location = globalThis.location, histor
   return {
     user: null,
     ready: false,
-    mode: 'login',
     email: '',
     password: '',
     error: '',
-    info: '',
     busy: false,
 
     async init() {
@@ -21,26 +19,11 @@ export function createAuthStore(client, { location = globalThis.location, histor
       this.ready = true;
     },
 
-    toggleMode() {
-      this.mode = this.mode === 'login' ? 'signup' : 'login';
-      this.error = '';
-      this.info = '';
-    },
-
     async submit() {
       this.error = '';
-      this.info = '';
       this.busy = true;
       try {
-        if (this.mode === 'signup') {
-          const { confirmationRequired } = await client.signUp(this.email.trim(), this.password, location.origin + location.pathname);
-          if (confirmationRequired) {
-            this.info = 'Compte créé : vérifiez vos emails pour le confirmer, puis connectez-vous.';
-            this.mode = 'login';
-          }
-        } else {
-          await client.signIn(this.email.trim(), this.password);
-        }
+        await client.signIn(this.email.trim(), this.password);
         this.user = client.user;
         if (this.user) this.password = '';
       } catch (e) {

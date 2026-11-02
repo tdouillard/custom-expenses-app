@@ -28,10 +28,7 @@ test('invalid credentials map to a French message', async () => {
   await assert.rejects(() => c.signIn('a', 'b'), (e) => e instanceof ApiError && /incorrect/.test(e.message));
 });
 
-test('signUp reports confirmation required', async () => {
-  const { c } = client(() => json(200, { id: 'u' }));
-  assert.deepEqual(await c.signUp('a@b.c', 'secret1'), { confirmationRequired: true });
-});
+
 
 test('rest refreshes once on 401', async () => {
   let n = 0;
