@@ -1,0 +1,48 @@
+<div class="account">
+  <section class="card">
+    <h2>Profil</h2>
+    <div class="account-id">
+      <span class="avatar avatar-lg" x-text="$store.auth.initials"></span>
+      <div>
+        <b x-text="$store.auth.displayName"></b>
+        <span class="muted" x-text="$store.auth.user?.email"></span>
+        <span class="muted" x-text="$store.admin.isAdmin ? 'Administrateur' : 'Membre'"></span>
+      </div>
+    </div>
+    <form class="stack-form" id="account-profile-form" @submit.prevent="saveProfile()">
+      <label>Nom d’utilisateur
+        <input name="username" autocomplete="nickname" maxlength="40" x-model="username">
+      </label>
+      <label>Langue
+        <select name="language" x-model="language">
+          <option value="fr">Français</option>
+          <option value="en">English</option>
+        </select>
+      </label>
+      <p class="ok" role="status" x-show="profile.ok" x-text="profile.ok"></p>
+      <p class="form-error" role="alert" x-show="profile.error" x-text="profile.error"></p>
+      <button class="primary" type="submit" :disabled="profile.busy">Enregistrer</button>
+    </form>
+  </section>
+
+  <section class="card">
+    <h2>Adresse email</h2>
+    <p class="hint">Adresse actuelle : <b x-text="$store.auth.user?.email"></b>. Le changement n'est effectif qu'après confirmation par email.</p>
+    <p class="notice" x-show="$store.auth.user?.new_email">
+      En attente de confirmation : <b x-text="$store.auth.user?.new_email"></b>
+    </p>
+    <form class="stack-form" id="account-email-form" @submit.prevent="changeEmail()">
+      <label>Nouvelle adresse
+        <input type="email" name="new-email" autocomplete="email" required x-model="email">
+      </label>
+      <p class="ok" role="status" x-show="emailState.ok" x-text="emailState.ok"></p>
+      <p class="form-error" role="alert" x-show="emailState.error" x-text="emailState.error"></p>
+      <button class="primary" type="submit" :disabled="emailState.busy">Changer l'email</button>
+    </form>
+  </section>
+
+  <section class="card">
+    <h2>Mot de passe</h2>
+    <p class="hint">Pour modifier votre mot de passe, utilisez la fonctionnalité <a href="#/auth/forgot-password">"Mot de passe oublié"</a> sur la page de connexion.</p>
+  </section>
+</div>

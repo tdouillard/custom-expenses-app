@@ -11,16 +11,13 @@
 <body x-data="appShell">
   <p class="splash" x-show="!$store.auth.ready">Chargement…</p>
 
-  <div x-cloak x-show="$store.auth.ready && !$store.auth.user" data-include="src/components/login/login.html"></div>
+  <div x-cloak x-show="$store.auth.ready && !$store.auth.user && page === 'login'" data-include="src/components/login/login.html"></div>
+
+  <div x-cloak x-show="$store.auth.ready && !$store.auth.user && page === 'forgot-password'" data-include="src/components/forgot-password/forgot-password.html" x-data="forgotPasswordPage()"></div>
 
   <div x-cloak x-show="$store.auth.user">
     <div data-include="src/components/app-shell/header.html"></div>
     <p class="banner" role="alert" x-cloak x-show="$store.data.error" x-text="$store.data.error"></p>
-
-    <nav class="app-nav" x-cloak x-show="$store.admin.isAdmin" aria-label="Pages">
-      <button id="nav-dashboard" :aria-current="$store.admin.view === 'dashboard' ? 'page' : null" @click="$store.admin.view = 'dashboard'">Tableau de bord</button>
-      <button id="nav-admin" :aria-current="$store.admin.view === 'admin' ? 'page' : null" @click="$store.admin.view = 'admin'">Administration</button>
-    </nav>
 
     <main class="dashboard" x-show="$store.admin.view === 'dashboard'">
       <div class="span-8" data-include="src/components/balances/balances.html"></div>
@@ -35,6 +32,9 @@
 
     <main class="admin-page" x-cloak x-show="$store.admin.isAdmin && $store.admin.view === 'admin'"
           data-include="src/components/admin/admin.html" x-data="adminPage"></main>
+
+    <main class="account-page" x-cloak x-show="$store.admin.view === 'account'"
+          data-include="src/components/account/account.html" x-data="accountPage"></main>
 
     <div data-include="src/components/expense-dialog/expense-dialog.html" x-data="expenseDialog" @open-expense.window="open($event.detail)"></div>
     <div data-include="src/components/settle-dialog/settle-dialog.html" x-data="settleDialog" @open-settle.window="open()"></div>

@@ -4,7 +4,9 @@ import { SupabaseClient } from './services/supabase.js';
 import { StateRepository } from './services/repository.js';
 import { AdminRepository } from './services/admin.js';
 import { createAdminStore } from './stores/admin.js';
+import { accountPage } from './components/account/account.js';
 import { adminPage } from './components/admin/admin.js';
+import { forgotPasswordPage } from './components/forgot-password/forgot-password.js';
 import { createAuthStore } from './stores/auth.js';
 import { createDataStore } from './stores/data.js';
 import { appShell } from './components/app-shell/app-shell.js';
@@ -27,7 +29,7 @@ document.addEventListener('alpine:init', () => {
   Alpine.store('data', createDataStore(new StateRepository(client)));
   Alpine.store('auth', createAuthStore(client));
   Alpine.store('admin', createAdminStore(new AdminRepository(client)));
-  Object.entries({ adminPage, appShell, collectionCard, expenseDialog, expenses, importDialog, manageDialog, settleDialog, settlementsCard })
+  Object.entries({ accountPage, forgotPasswordPage, adminPage, appShell, collectionCard, expenseDialog, expenses, importDialog, manageDialog, settleDialog, settlementsCard })
     .forEach(([name, factory]) => Alpine.data(name, factory));
 });
 

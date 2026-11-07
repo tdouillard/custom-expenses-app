@@ -4,5 +4,18 @@
 .admin-head { display:flex; align-items:center; gap:.75rem; flex-wrap:wrap; }
 .admin-head .check { margin-left:auto; }
 .check { display:inline-flex; align-items:center; gap:.35rem; cursor:pointer; }
-.app-nav { display:flex; gap:.5rem; padding:0 1rem; }
-.app-nav button[aria-current="page"] { font-weight:700; }
+.tabs { display:inline-flex; gap:.25rem; padding:.25rem; border-radius:999px; background:rgba(8,12,24,.6); box-shadow:var(--inset); }
+.tabs button { border:0; box-shadow:none; background:transparent; color:var(--muted); border-radius:999px; padding:.45rem 1.1rem; font-weight:600; cursor:pointer; transition:background .2s, color .2s; }
+.tabs button:hover { color:var(--text); }
+.tabs button[aria-current="page"] { background:#e8e8e8; color:#141b2d; box-shadow:0 2px 8px rgba(0,0,0,.35); }
+
+.profile { position:relative; }
+.avatar { display:inline-grid; place-items:center; width:2.4rem; height:2.4rem; padding:0; border:0; border-radius:50%; background:var(--grad); color:#fff; font-weight:700; font-size:.85rem; letter-spacing:.03em; cursor:pointer; box-shadow:var(--raised-sm); }
+.avatar-lg { width:2.8rem; height:2.8rem; flex:none; cursor:default; }
+.profile-menu { position:absolute; right:0; top:calc(100% + .6rem); z-index:20; min-width:16rem; padding:.5rem; display:grid; gap:.25rem; border-radius:16px; background:#1d1a22; border:1px solid var(--border); box-shadow:0 14px 40px rgba(0,0,0,.55); }
+.profile-info { display:flex; align-items:center; gap:.7rem; padding:.6rem .6rem .75rem; border-bottom:1px solid var(--border); margin-bottom:.25rem; }
+.profile-info div { display:grid; min-width:0; }
+.profile-info b { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:.9rem; }
+.profile-menu [role="menuitem"] { display:flex; align-items:center; gap:.6rem; width:100%; text-align:left; border:0; box-shadow:none; background:transparent; color:var(--text); border-radius:10px; padding:.55rem .7rem; cursor:pointer; }
+.profile-menu [role="menuitem"]:hover { background:rgba(255,255,255,.07); }
+.profile-menu .danger { color:var(--red); }

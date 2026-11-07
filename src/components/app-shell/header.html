@@ -1,8 +1,29 @@
 <header class="app-header">
   <h1>💸 Dépenses &amp; remboursements</h1>
+
+  <nav class="tabs" x-cloak x-show="$store.admin.isAdmin" aria-label="Pages">
+    <button id="nav-dashboard" :aria-current="$store.admin.view === 'dashboard' ? 'page' : null" @click="$store.admin.view = 'dashboard'">Tableau de bord</button>
+    <button id="nav-admin" :aria-current="$store.admin.view === 'admin' ? 'page' : null" @click="$store.admin.view = 'admin'">Administration</button>
+  </nav>
+
   <div class="header-actions">
-    <span class="muted user-email" x-text="$store.auth.user?.email"></span>
     <button class="primary" id="add-expense" @click="$dispatch('open-expense')">+ Ajouter une dépense</button>
-    <button id="sign-out" @click="$store.auth.signOut()">Déconnexion</button>
+
+    <div class="profile" x-data="{ open: false }" @click.outside="open = false" @keydown.escape.window="open = false">
+      <button class="avatar" id="profile-btn" aria-haspopup="menu" :aria-expanded="open" aria-label="Menu du profil"
+              @click="open = !open" x-text="$store.auth.initials"></button>
+      <div class="profile-menu" role="menu" x-cloak x-show="open" x-transition.opacity.scale.origin.top.right>
+        <div class="profile-info">
+          <span class="avatar avatar-lg" x-text="$store.auth.initials"></span>
+          <div>
+            <b x-text="$store.auth.displayName"></b>
+            <span class="muted user-email" x-text="$store.auth.user?.email"></span>
+            <span class="muted" x-text="$store.admin.isAdmin ? 'Administrateur' : 'Membre'"></span>
+          </div>
+        </div>
+        <button role="menuitem" id="nav-settings" @click="$store.admin.view = 'account'; open = false">⚙️ Paramètres</button>
+        <button role="menuitem" id="sign-out" class="danger" @click="open = false; $store.auth.signOut()">⎋ Déconnexion</button>
+      </div>
+    </div>
   </div>
 </header>

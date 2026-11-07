@@ -10,5 +10,6 @@
     </label>
     <div class="form-error" role="alert" x-cloak x-show="$store.auth.error" x-text="$store.auth.error"></div>
     <button class="primary" type="submit" :disabled="$store.auth.busy">Se connecter</button>
+    <a href="#/auth/forgot-password" class="link-button">Mot de passe oublié ?</a>
   </form>
 </section>

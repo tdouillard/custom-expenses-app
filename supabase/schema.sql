@@ -70,6 +70,18 @@ create trigger on_auth_user_created after insert on auth.users
 insert into public.profiles (id, email)
   select u.id, coalesce(u.email, '') from auth.users u on conflict (id) do nothing;
 
+-- Keep profiles.email in step when a user confirms an email change.
+create or replace function public.handle_user_email_change() returns trigger
+language plpgsql security definer set search_path = '' as $$
+begin
+  update public.profiles set email = coalesce(new.email, '') where id = new.id;
+  return new;
+end $$;
+
+drop trigger if exists on_auth_user_email_changed on auth.users;
+create trigger on_auth_user_email_changed after update of email on auth.users
+  for each row when (old.email is distinct from new.email) execute function public.handle_user_email_change();
+
 -- The creator of an event can always open it.
 create or replace function public.grant_creator_access() returns trigger
 language plpgsql security definer set search_path = '' as $$

@@ -23,6 +23,31 @@ test('signIn stores the session and sends the apikey', async () => {
   assert.equal(calls[0].url, 'https://x.supabase.co/auth/v1/token?grant_type=password');
 });
 
+test('updateUser sends a PUT with the redirect and keeps the pending email in the session', async () => {
+  const { c, calls } = client((url) => url.includes('/token')
+    ? json(200, { access_token: 't', refresh_token: 'r', expires_in: 3600, user: { email: 'a@b.c' } })
+    : json(200, { email: 'a@b.c', new_email: 'n@b.c' }));
+  await c.signIn('a@b.c', 'secret1');
+  const user = await c.updateUser({ email: 'n@b.c' }, { redirectTo: 'https://app/x' });
+  const call = calls.at(-1);
+  assert.equal(call.opts.method, 'PUT');
+  assert.equal(call.url, 'https://x.supabase.co/auth/v1/user?redirect_to=https%3A%2F%2Fapp%2Fx');
+  assert.equal(call.opts.headers.Authorization, 'Bearer t');
+  assert.deepEqual(JSON.parse(call.opts.body), { email: 'n@b.c' });
+  assert.equal(user.new_email, 'n@b.c');
+  assert.equal(c.user.new_email, 'n@b.c');
+});
+
+test('password change surfaces the re-authentication requirement and reauthenticate hits GoTrue', async () => {
+  const { c, calls } = client((url) => url.includes('/token')
+    ? json(200, { access_token: 't', refresh_token: 'r', expires_in: 3600, user: {} })
+    : url.includes('/reauthenticate') ? json(200, {}) : json(400, { error_code: 'reauthentication_needed' }));
+  await c.signIn('a', 'b');
+  await assert.rejects(() => c.updateUser({ password: 'newsecret' }), /code/);
+  await c.reauthenticate();
+  assert.equal(calls.at(-1).url, 'https://x.supabase.co/auth/v1/reauthenticate');
+});
+
 test('invalid credentials map to a French message', async () => {
   const { c } = client(() => json(400, { error_code: 'invalid_credentials' }));
   await assert.rejects(() => c.signIn('a', 'b'), (e) => e instanceof ApiError && /incorrect/.test(e.message));

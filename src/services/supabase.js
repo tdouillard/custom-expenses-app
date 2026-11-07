@@ -4,11 +4,16 @@ const EXPIRY_SKEW_SECONDS = 60;
 const KNOWN_ERRORS = {
   invalid_credentials: 'Email ou mot de passe incorrect.',
   email_not_confirmed: 'Confirmez votre adresse email avant de vous connecter.',
-  user_already_exists: 'Un compte existe dÃ©jÃ  avec cet email.',
-  weak_password: 'Mot de passe trop faible (6 caractÃ¨res minimum).',
-  over_email_send_rate_limit: 'Trop de tentatives, rÃ©essayez plus tard.',
-  signup_disabled: 'Les inscriptions sont dÃ©sactivÃ©es.',
+  user_already_exists: 'Un compte existe déjà avec cet email.',
+  weak_password: 'Mot de passe trop faible (6 caractères minimum).',
+  over_email_send_rate_limit: 'Trop de tentatives, réessayez plus tard.',
+  signup_disabled: 'Les inscriptions sont désactivées.',
   validation_failed: 'Email ou mot de passe invalide.',
+  same_password: 'Le nouveau mot de passe doit être différent de l’actuel.',
+  reauthentication_needed: 'Vérification requise : saisissez le code de vérification reçu par email.',
+  reauthentication_not_valid: 'Code de vérification invalide ou expiré.',
+  email_exists: 'Cette adresse email est déjà utilisée.',
+  email_address_invalid: 'Adresse email invalide.',
 };
 
 export class ApiError extends Error {
@@ -55,7 +60,7 @@ export class SupabaseClient {
         body: body === undefined ? undefined : JSON.stringify(body),
       });
     } catch {
-      throw new ApiError('RÃ©seau indisponible.');
+      throw new ApiError('Réseau indisponible.');
     }
     const text = await res.text();
     let data = null;
@@ -81,6 +86,10 @@ export class SupabaseClient {
     return this.user;
   }
 
+  async resetPasswordForEmail(email, options = {}) {
+    await this.#call('/auth/v1/recover', { method: 'POST', body: { email, ...options } });
+  }
+
   async signOut() {
     const token = this.session?.access_token;
     this.#writeSession(null);
@@ -89,7 +98,7 @@ export class SupabaseClient {
 
   async refresh() {
     const refreshToken = this.session?.refresh_token;
-    if (!refreshToken) throw new ApiError('Session expirÃ©e.', 401);
+    if (!refreshToken) throw new ApiError('Session expirée.', 401);
     try {
       this.#storeTokens(await this.#call('/auth/v1/token?grant_type=refresh_token', { method: 'POST', body: { refresh_token: refreshToken } }));
     } catch (e) {
@@ -99,7 +108,7 @@ export class SupabaseClient {
   }
 
   async accessToken() {
-    if (!this.session) throw new ApiError('Non connectÃ©.', 401);
+    if (!this.session) throw new ApiError('Non connecté.', 401);
     if (this.session.expires_at - EXPIRY_SKEW_SECONDS <= this.now() / 1000) await this.refresh();
     return this.session.access_token;
   }
@@ -117,6 +126,21 @@ export class SupabaseClient {
       user,
     });
     return true;
+  }
+
+  /* Updates the signed-in user (email, password, user_metadata). An email change only applies once the
+     confirmation link(s) are opened; until then the returned user carries `new_email`. */
+  async updateUser(attributes, { redirectTo } = {}) {
+    const token = await this.accessToken();
+    const query = redirectTo ? '?redirect_to=' + encodeURIComponent(redirectTo) : '';
+    const user = await this.#call('/auth/v1/user' + query, { method: 'PUT', token, body: attributes });
+    this.#writeSession({ ...this.session, user });
+    return user;
+  }
+
+  /* Emails a one-time code (nonce) that confirms a sensitive change such as a password update. */
+  async reauthenticate() {
+    await this.#call('/auth/v1/reauthenticate', { token: await this.accessToken() });
   }
 
   /* PostgREST call authenticated as the signed-in user; refreshes the token once on a 401. */

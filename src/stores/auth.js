@@ -33,6 +33,32 @@ export function createAuthStore(client, { location = globalThis.location, histor
       }
     },
 
+    get meta() { return this.user?.user_metadata || {}; },
+    get displayName() { return this.meta.username || (this.user?.email || '').split('@')[0]; },
+    get language() { return this.meta.language || 'fr'; },
+    get initials() {
+      const parts = this.displayName.split(/[._\-+\s]+/).filter(Boolean);
+      return (parts.length > 1 ? parts[0][0] + parts[1][0] : this.displayName.slice(0, 2) || '?').toUpperCase();
+    },
+
+    /* Each of these throws an ApiError with a readable message on failure. */
+    async saveProfile({ username, language }) {
+      this.user = await client.updateUser({ data: { username: username.trim(), language } });
+    },
+    async changeEmail(email) {
+      this.user = await client.updateUser({ email: email.trim() }, { redirectTo: location?.origin + location?.pathname });
+    },
+    async sendPasswordCode() { await client.reauthenticate(); },
+    async changePassword(password, nonce) {
+      this.user = await client.updateUser(nonce ? { password, nonce } : { password });
+    },
+
+    async resetPassword(email) {
+      await client.resetPasswordForEmail(email.trim(), {
+        redirectTo: location?.origin + location?.pathname + '#/auth/reset-password',
+      });
+    },
+
     async signOut() {
       await client.signOut();
       this.user = null;

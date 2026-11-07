@@ -47,6 +47,7 @@ test('sign out returns to the login form', async ({ page }) => {
   await fakeSupabase(page);
   await login(page);
   await expect(page.locator('.dashboard')).toBeVisible();
-  await page.getByRole('button', { name: /déconnexion/i }).click();
+  await page.click('#profile-btn');
+  await page.getByRole('menuitem', { name: /d.{1,3}connexion/i }).click();
   await expect(page.getByRole('heading', { name: 'Connexion' })).toBeVisible();
 });
