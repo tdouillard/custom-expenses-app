@@ -2,18 +2,25 @@ import { norm } from './format.js';
 
 /* Generic add / rename / delete of the collections shown in the manage dialog (members, events).
    Each handler describes how a collection is stored and which expense fields reference it. */
+const links = (s) => (s.memberUsers ||= {});
+
 const HANDLERS = {
   members: {
-    items: (s) => s.members.map((name) => ({ name })),
-    blank: () => ({ name: '' }),
+    items: (s) => s.members.map((name) => ({ name, userId: links(s)[name] || '' })),
+    blank: () => ({ name: '', userId: '' }),
     nameAt: (s, i) => s.members[i],
     names: (s) => s.members,
     usage: (s, name) => s.expenses.filter((e) => e.paidBy === name || (e.split?.[name] || 0) > 0).length
       + s.settlements.filter((x) => x.from === name || x.to === name).length,
-    insert: (s, d) => { s.members.push(d.name); },
+    insert: (s, d) => {
+      s.members.push(d.name);
+      if (d.userId) links(s)[d.name] = d.userId;
+    },
     update(s, i, d) {
       const old = s.members[i];
       s.members[i] = d.name;
+      delete links(s)[old];
+      if (d.userId) links(s)[d.name] = d.userId;
       if (old === d.name) return;
       s.expenses.forEach((e) => {
         if (e.paidBy === old) e.paidBy = d.name;
@@ -24,7 +31,7 @@ const HANDLERS = {
         if (x.to === old) x.to = d.name;
       });
     },
-    remove: (s, i) => { s.members.splice(i, 1); },
+    remove: (s, i) => { delete links(s)[s.members[i]]; s.members.splice(i, 1); },
   },
   events: {
     items: (s) => s.events.map((e) => ({ ...e, recipients: [...e.recipients] })),
@@ -63,7 +70,20 @@ function validate(state, kind, index, draft) {
   const name = String(draft.name ?? '').trim();
   if (!name) return 'Saisissez un nom.';
   const clash = h.names(state).some((n, i) => i !== index && norm(n) === norm(name));
-  return clash ? `Un ${LABELS[kind]} porte déjà ce nom.` : '';
+  if (clash) return `Un ${LABELS[kind]} porte déjà ce nom.`;
+  if (kind === 'members' && draft.userId && state.members.some((n, i) => i !== index && links(state)[n] === draft.userId)) {
+    return 'Cet utilisateur est déjà associé à un autre membre.';
+  }
+  return '';
+}
+
+/* Makes `memberName` stand for the user (renamed to `newName` when given); `memberName` empty just unlinks the user. */
+export function linkMember(state, userId, memberName, newName = '') {
+  Object.keys(links(state)).forEach((n) => { if (links(state)[n] === userId) delete links(state)[n]; });
+  if (!memberName) return {};
+  const index = state.members.indexOf(memberName);
+  if (index < 0) return { error: `Membre « ${memberName} » introuvable.` };
+  return saveItem(state, 'members', index, { name: newName || memberName, userId });
 }
 
 /* index -1 adds a new item. Returns { error } without touching the state when invalid. */

@@ -6,6 +6,7 @@ export const COLLECTIONS = {
     emptyText: 'Aucun membre',
     fields: [
       { key: 'name', label: 'Nom', type: 'text', required: true },
+      { key: 'userId', label: 'Utilisateur', type: 'user' },
     ],
   },
   events: {

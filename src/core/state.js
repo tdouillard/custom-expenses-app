@@ -1,11 +1,13 @@
 import { norm } from './format.js';
 
-export const emptyState = () => ({ members: [], events: [], expenses: [], settlements: [] });
+export const emptyState = () => ({ members: [], events: [], expenses: [], settlements: [], memberUsers: {} });
 
-/* Accepts older shapes (events as plain strings, missing dates/settlements) and returns a complete state. */
+/* Accepts older shapes (events as plain strings, missing dates/settlements) and returns a complete state.
+   `memberUsers` maps a member name to the id of the user it stands for. */
 export function normalizeState(raw) {
   const state = { ...emptyState(), ...(raw || {}) };
   state.members = [...state.members];
+  state.memberUsers = { ...state.memberUsers };
   state.expenses = [...state.expenses];
   state.settlements = [...state.settlements];
   state.events = state.events.map((ev) => (typeof ev === 'string'

@@ -8,10 +8,17 @@ const clone = (value) => JSON.parse(JSON.stringify(value));
 export function createDataStore(repository) {
   return {
     state: emptyState(),
+    users: [],
     loading: false,
     error: '',
 
     get eventNames() { return eventNames(this.state); },
+    userLabel(id) { const u = this.users.find((x) => x.id === id); return u ? (u.name || u.email) : ''; },
+    /* Users not yet linked to a member (plus `keep`, the one already linked to the member being edited). */
+    freeUsers(keep = '') {
+      const taken = new Set(Object.values(this.state.memberUsers || {}));
+      return this.users.filter((u) => u.id === keep || !taken.has(u.id));
+    },
     get balances() { return computeBalances(this.state, { projected: true }); },
     get balanceRows() {
       return this.state.members.map((member) => ({ member, balance: this.balances[member], label: balanceLabel(this.balances[member]) }));
@@ -24,6 +31,7 @@ export function createDataStore(repository) {
       this.error = '';
       try {
         this.state = await repository.load();
+        this.users = await repository.users().catch(() => []);
       } catch (e) {
         this.error = `Chargement impossible : ${e.message}`;
       } finally {
@@ -33,6 +41,7 @@ export function createDataStore(repository) {
 
     reset() {
       this.state = emptyState();
+      this.users = [];
       this.error = '';
     },
 

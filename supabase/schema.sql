@@ -14,6 +14,11 @@ create table if not exists public.members (
   created_at timestamptz not null default now()
 );
 
+alter table public.profiles add column if not exists name text not null default '';
+-- A member can be linked to the user it stands for (at most one member per user).
+alter table public.members add column if not exists user_id uuid references auth.users (id) on delete set null;
+create unique index if not exists members_user_idx on public.members (user_id) where user_id is not null;
+
 create table if not exists public.events (
   id text primary key,
   name text not null,
@@ -124,8 +129,8 @@ begin
   end loop;
 end $$;
 
-create policy "profiles: read own or admin" on public.profiles for select to authenticated
-  using (id = (select auth.uid()) or public.is_admin());
+-- Every signed-in user can list users, so a member can be created from one.
+create policy "profiles: read" on public.profiles for select to authenticated using (true);
 create policy "profiles: admin update" on public.profiles for update to authenticated
   using (public.is_admin()) with check (public.is_admin());
 

@@ -56,4 +56,9 @@ export const manageDialog = () => ({
     this.tagInputs[field.key] = '';
   },
   removeTag(field, i) { this.draft[field.key].splice(i, 1); },
+
+  pickUser(field) {
+    const label = this.$store.data.userLabel(this.draft[field.key]);
+    if (label) this.draft.name = label;
+  },
 });

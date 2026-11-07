@@ -86,6 +86,14 @@ export class SupabaseClient {
     return this.user;
   }
 
+  /* Creates an account without touching the current session (used by admins). Returns the new user id. */
+  async createUser(email, password) {
+    const data = await this.#call('/auth/v1/signup', { method: 'POST', body: { email, password } });
+    const id = data?.user?.id || data?.id;
+    if (!id) throw new ApiError('Création du compte impossible.');
+    return id;
+  }
+
   async resetPasswordForEmail(email, options = {}) {
     await this.#call('/auth/v1/recover', { method: 'POST', body: { email, ...options } });
   }

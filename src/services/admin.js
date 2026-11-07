@@ -7,13 +7,13 @@ export class AdminRepository {
   }
 
   async profile() {
-    const rows = await this.client.rest(`/profiles?select=id,email,is_admin&id=eq.${this.client.user.id}`);
+    const rows = await this.client.rest(`/profiles?select=id,email,name,is_admin&id=eq.${this.client.user.id}`);
     return rows?.[0] || null;
   }
 
   async overview() {
     const [users, events, access, expenses] = await Promise.all([
-      this.client.rest('/profiles?select=id,email,is_admin&order=email'),
+      this.client.rest('/profiles?select=id,email,name,is_admin&order=email'),
       this.client.rest('/events?select=id,name,date,recipients&order=name'),
       this.client.rest('/event_access?select=event_id,user_id'),
       this.client.rest('/expenses?select=id,event_id'),
@@ -23,8 +23,10 @@ export class AdminRepository {
     return { users, events: events.map((e) => ({ ...e, expenseCount: counts[e.id] || 0 })), access };
   }
 
-  setAdmin(userId, isAdmin) {
-    return this.client.rest(`/profiles?id=eq.${userId}`, { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: { is_admin: isAdmin } });
+  createUser(email, password) { return this.client.createUser(email, password); }
+
+  setProfile(userId, { is_admin, name }) {
+    return this.client.rest(`/profiles?id=eq.${userId}`, { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: { is_admin, name } });
   }
 
   grant(eventId, userId) {
@@ -40,9 +42,11 @@ export class AdminRepository {
   }
 
   saveEvent({ id, name, date, recipients }) {
-    const body = { name, date: date || '', recipients: recipients || [] };
-    if (id) return this.client.rest(`/events?id=eq.${encodeURIComponent(id)}`, { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body });
-    return this.client.rest('/events', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: { id: newId(), ...body } });
+    return this.client.rest('/events?on_conflict=id', {
+      method: 'POST',
+      headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+      body: { id: id || newId(), name, date: date || '', recipients: recipients || [] },
+    });
   }
 
   deleteEvent(id) {

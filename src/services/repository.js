@@ -14,7 +14,7 @@ export class StateRepository {
 
   async load() {
     const [members, events, expenses, settlements] = await Promise.all([
-      this.client.rest('/members?select=name&order=created_at,name'),
+      this.client.rest('/members?select=name,user_id&order=created_at,name'),
       this.client.rest('/events?select=id,name,date,recipients&order=created_at,name'),
       this.client.rest('/expenses?select=id,event_id,data&order=updated_at,id'),
       this.client.rest('/settlements?select=id,data&order=created_at,id'),
@@ -22,12 +22,18 @@ export class StateRepository {
     const names = new Map(events.map((e) => [e.id, e.name]));
     const state = normalizeState({
       members: members.map((m) => m.name),
+      memberUsers: Object.fromEntries(members.filter((m) => m.user_id).map((m) => [m.name, m.user_id])),
       events,
       expenses: expenses.filter((x) => names.has(x.event_id)).map((x) => ({ ...x.data, id: x.id, event: names.get(x.event_id) })),
       settlements: settlements.map((x) => ({ ...x.data, id: x.id })),
     });
     this.base = clone(state);
     return state;
+  }
+
+  /* Users a member can be created from. */
+  users() {
+    return this.client.rest('/profiles?select=id,email,name&order=email');
   }
 
   /* Assigns missing ids in place, then diffs `state` against the last loaded/saved copy. */
@@ -50,7 +56,7 @@ export class StateRepository {
       { method: 'DELETE', headers: { Prefer: 'return=minimal' } },
     );
 
-    await post('members', rows.members.filter((m) => !old.members.some((o) => o.name === m.name)), 'name');
+    await post('members', rows.members.filter((m) => !same(m, old.members.find((o) => o.name === m.name))), 'name');
     await post('events', upserts('events'), 'id');
     await post('expenses', upserts('expenses'), 'id');
     await post('settlements', upserts('settlements'), 'id');
@@ -64,7 +70,7 @@ export class StateRepository {
   #rows(state) {
     const ids = new Map(state.events.map((e) => [e.name, e.id]));
     return {
-      members: state.members.map((name) => ({ name })),
+      members: state.members.map((name) => ({ name, user_id: state.memberUsers?.[name] || null })),
       events: state.events.map((e) => ({ id: e.id, name: e.name, date: e.date || '', recipients: e.recipients || [] })),
       expenses: state.expenses.filter((x) => ids.has(x.event)).map(({ id, event, ...data }) => ({ id, event_id: ids.get(event), data })),
       settlements: state.settlements.map(({ id, ...data }) => ({ id, data })),

@@ -13,6 +13,9 @@
             <template x-if="f.type === 'date'">
               <span class="muted" x-text="$fmt.fmtDate(row.item[f.key]) || 'Sans date'"></span>
             </template>
+            <template x-if="f.type === 'user'">
+              <span class="chips"><span class="chip" x-show="row.item[f.key]" x-text="$store.data.userLabel(row.item[f.key])"></span></span>
+            </template>
             <template x-if="f.type === 'tags'">
               <span class="chips">
                 <template x-for="p in row.item[f.key]" :key="p"><span class="chip" x-text="p"></span></template>

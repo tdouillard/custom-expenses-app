@@ -3,6 +3,10 @@
 .admin-row { border-radius:16px; padding:.8rem 1rem; box-shadow:var(--inset); display:grid; gap:.5rem; }
 .admin-head { display:flex; align-items:center; gap:.75rem; flex-wrap:wrap; }
 .admin-head .check { margin-left:auto; }
+.admin-toolbar { display:flex; justify-content:flex-end; }
+.admin-add { display:grid; gap:.5rem; margin-top:1rem; }
+.admin-add.inline { display:flex; }
+.admin-row .inline { flex-wrap:wrap; }
 .check { display:inline-flex; align-items:center; gap:.35rem; cursor:pointer; }
 .tabs { display:inline-flex; gap:.25rem; padding:.25rem; border-radius:999px; background:rgba(8,12,24,.6); box-shadow:var(--inset); }
 .tabs button { border:0; box-shadow:none; background:transparent; color:var(--muted); border-radius:999px; padding:.45rem 1.1rem; font-weight:600; cursor:pointer; transition:background .2s, color .2s; }

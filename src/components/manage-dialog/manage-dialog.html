@@ -11,6 +11,9 @@
               <template x-if="f.type === 'date'">
                 <span class="muted" x-text="$fmt.fmtDate(row.item[f.key]) || 'Sans date'"></span>
               </template>
+              <template x-if="f.type === 'user'">
+                <span class="chips"><span class="chip" x-show="row.item[f.key]" x-text="$store.data.userLabel(row.item[f.key])"></span></span>
+              </template>
               <template x-if="f.type === 'tags'">
                 <span class="chips">
                   <template x-for="p in row.item[f.key]" :key="p"><span class="chip" x-text="p"></span></template>
@@ -44,6 +47,16 @@
           <template x-if="f.type === 'date'">
             <label><span x-text="f.label"></span>
               <input type="date" :name="f.key" x-model="draft[f.key]">
+            </label>
+          </template>
+          <template x-if="f.type === 'user'">
+            <label><span x-text="f.label"></span>
+              <select :name="f.key" x-model="draft[f.key]" @change="pickUser(f)">
+                <option value="">Membre personnalisé (sans utilisateur)</option>
+                <template x-for="u in $store.data.freeUsers(draft[f.key])" :key="u.id">
+                  <option :value="u.id" :selected="u.id === draft[f.key]" x-text="u.name || u.email"></option>
+                </template>
+              </select>
             </label>
           </template>
           <template x-if="f.type === 'tags'">

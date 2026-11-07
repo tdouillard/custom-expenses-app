@@ -37,24 +37,18 @@ export function createAdminStore(repository) {
       }
     },
 
-    /* Runs a write then reloads the lists. Returns { error } on failure. */
+    /* Runs writes then reloads the lists once. Returns { error } on failure. */
     async run(action) {
       this.error = '';
       try {
         await action(repository);
       } catch (e) {
         this.error = `Action impossible : ${e.message}`;
+        await this.refresh();
         return { error: this.error };
       }
       await this.refresh();
       return {};
     },
-
-    toggleAccess(eventId, userId) {
-      return this.run((r) => (this.hasAccess(eventId, userId) ? r.revoke(eventId, userId) : r.grant(eventId, userId)));
-    },
-    setAdmin(userId, value) { return this.run((r) => r.setAdmin(userId, value)); },
-    saveEvent(event) { return this.run((r) => r.saveEvent(event)); },
-    deleteEvent(id) { return this.run((r) => r.deleteEvent(id)); },
   };
 }

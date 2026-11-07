@@ -5,6 +5,7 @@ import { eur, norm, parseList, balanceLabel, signClass } from '../../src/core/fo
 import { emptyState, normalizeState, byEventDate } from '../../src/core/state.js';
 import { parseCsv, parseAmount } from '../../src/core/csv.js';
 import { filterExpenses, sumAmounts, nextOrder } from '../../src/core/expenses.js';
+import { linkMember } from '../../src/core/collections.js';
 
 test('splitEqually distributes cents', () => {
   assert.deepEqual(splitEqually(100, ['a', 'b', 'c']), { a: 33.34, b: 33.33, c: 33.33 });
@@ -43,7 +44,7 @@ test('format helpers', () => {
 });
 
 test('state normalisation', () => {
-  assert.deepEqual(emptyState(), { members: [], events: [], expenses: [], settlements: [] });
+  assert.deepEqual(emptyState(), { members: [], events: [], expenses: [], settlements: [], memberUsers: {} });
   const s = normalizeState(null);
   assert.deepEqual(s.members, []);
   assert.ok(byEventDate({ date: '2024-01-01' }, { date: '2024-02-01' }) < 0);
@@ -64,4 +65,16 @@ test('expense helpers', () => {
   ] };
   assert.equal(filterExpenses(state, { event: 'X' }).length, 1);
   assert.equal(filterExpenses(state, {}).length, 2);
+});
+
+test('linkMember renames the member to the user and keeps its expenses', () => {
+  const s = { members: ['Bob', 'Al'], events: [], settlements: [], memberUsers: {}, expenses: [{ paidBy: 'Bob', split: { Bob: 5, Al: 5 } }] };
+  assert.deepEqual(linkMember(s, 'u1', 'Bob', 'Robert'), {});
+  assert.deepEqual(s.members, ['Robert', 'Al']);
+  assert.deepEqual(s.memberUsers, { Robert: 'u1' });
+  assert.equal(s.expenses[0].paidBy, 'Robert');
+  assert.deepEqual(linkMember(s, 'u1', 'Al'), {});
+  assert.deepEqual(s.memberUsers, { Al: 'u1' });
+  assert.deepEqual(linkMember(s, 'u2', 'Al'), {});
+  assert.deepEqual(s.memberUsers, { Al: 'u2' });
 });
