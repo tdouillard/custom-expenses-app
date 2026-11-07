@@ -7,6 +7,7 @@ export const accountPage = () => ({
   email: '',
   profile: idle(),
   emailState: idle(),
+  passwordState: idle(),
 
   init() {
     this.fill();
@@ -47,5 +48,10 @@ export const accountPage = () => ({
     const done = await this.run(this.emailState, () => this.$store.auth.changeEmail(next),
       () => 'Un email de confirmation a été envoyé. Ouvrez le lien pour valider le changement.');
     if (done) this.email = '';
+  },
+
+  async forgotPassword() {
+    await this.run(this.passwordState, () => this.$store.auth.resetPassword(this.$store.auth.user.email),
+      () => 'Un email a été envoyé. Ouvrez le lien pour définir un nouveau mot de passe.');
   },
 });

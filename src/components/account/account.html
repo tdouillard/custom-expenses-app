@@ -43,6 +43,9 @@
 
   <section class="card">
     <h2>Mot de passe</h2>
-    <p class="hint">Pour modifier votre mot de passe, utilisez la fonctionnalité <a href="#/auth/forgot-password">"Mot de passe oublié"</a> sur la page de connexion.</p>
+    <p class="hint">Un lien de réinitialisation sera envoyé à votre adresse email.</p>
+    <p class="ok" role="status" x-show="passwordState.ok" x-text="passwordState.ok"></p>
+    <p class="form-error" role="alert" x-show="passwordState.error" x-text="passwordState.error"></p>
+    <button type="button" id="forgot-password-btn" @click="forgotPassword()" :disabled="passwordState.busy">Mot de passe oublié ?</button>
   </section>
 </div>
