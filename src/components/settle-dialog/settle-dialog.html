@@ -1,25 +1,25 @@
 <dialog x-ref="dlg" id="settle-dlg">
   <form @submit.prevent="submit()">
-    <h2>Remboursement</h2>
-    <label>De
+    <h2 x-text="$t('settle.title')"></h2>
+    <label><span x-text="$t('settle.from')"></span>
       <select name="from" x-model="form.from">
         <template x-for="m in $store.data.state.members" :key="m">
           <option :value="m" :selected="m === form.from" x-text="m"></option>
         </template>
       </select>
     </label>
-    <label>À
+    <label><span x-text="$t('settle.to')"></span>
       <select name="to" x-model="form.to">
         <template x-for="m in $store.data.state.members" :key="m">
           <option :value="m" :selected="m === form.to" x-text="m"></option>
         </template>
       </select>
     </label>
-    <label>Montant (€) <input name="amount" type="number" step="0.01" min="0.01" required x-model="form.amount"></label>
+    <label><span x-text="$t('settle.amount')"></span> <input name="amount" type="number" step="0.01" min="0.01" required x-model="form.amount"></label>
     <div class="form-error" role="alert" id="settle-error" x-cloak x-show="error" x-text="error"></div>
     <menu>
-      <button type="button" @click="closeDialog()">Annuler</button>
-      <button class="primary" type="submit">Enregistrer</button>
+      <button type="button" @click="closeDialog()" x-text="$t('common.cancel')"></button>
+      <button class="primary" type="submit" x-text="$t('common.save')"></button>
     </menu>
   </form>
 </dialog>

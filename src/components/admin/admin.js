@@ -6,7 +6,7 @@ const key = (userId, eventId) => `${userId}|${eventId}`;
 const blankUser = () => ({ email: '', password: '', name: '', member: '' });
 const blankEvent = () => ({ name: '', date: '' });
 
-/* Admin page: read-only overview of users and events. "Modifier" copies everything into a draft that is
+/* Admin page: read-only overview of users and events. "Edit" copies everything into a draft that is
    only written (users, roles, access, events, member links) when saved, or dropped on cancel. */
 export const adminPage = () => ({
   editing: false,
@@ -56,9 +56,9 @@ export const adminPage = () => ({
 
   addUser() {
     const u = { ...this.newUser, email: this.newUser.email.trim(), name: this.newUser.name.trim() };
-    if (!/^\S+@\S+\.\S+$/.test(u.email)) { this.formError = 'Adresse email invalide.'; return; }
-    if (u.password.length < 6) { this.formError = 'Mot de passe : 6 caractères minimum.'; return; }
-    if (this.draftUsers.some((x) => norm(x.email) === norm(u.email))) { this.formError = 'Cet utilisateur existe déjà.'; return; }
+    if (!/^\S+@\S+\.\S+$/.test(u.email)) { this.formError = this.$t('admin.errEmail'); return; }
+    if (u.password.length < 6) { this.formError = this.$t('admin.errPassword'); return; }
+    if (this.draftUsers.some((x) => norm(x.email) === norm(u.email))) { this.formError = this.$t('admin.errUserExists'); return; }
     this.draft.newUsers.push({ ...u, id: `new-${++this.seq}`, is_admin: false, isNew: true });
     this.newUser = blankUser();
     this.formError = '';
@@ -67,8 +67,8 @@ export const adminPage = () => ({
 
   addEvent() {
     const name = this.newEvent.name.trim();
-    if (!name) { this.formError = 'Saisissez un nom.'; return; }
-    if (this.draft.events.some((e) => norm(e.name) === norm(name))) { this.formError = 'Un événement porte déjà ce nom.'; return; }
+    if (!name) { this.formError = this.$t('common.enterName'); return; }
+    if (this.draft.events.some((e) => norm(e.name) === norm(name))) { this.formError = this.$t('admin.errEventTaken'); return; }
     this.draft.events.push({ id: newId(), name, date: this.newEvent.date, recipients: [], expenseCount: 0, isNew: true });
     this.newEvent = blankEvent();
     this.formError = '';
@@ -80,8 +80,8 @@ export const adminPage = () => ({
 
   validate() {
     const names = this.draft.events.map((e) => norm(e.name.trim()));
-    if (names.some((n) => !n)) return 'Saisissez un nom pour chaque événement.';
-    if (new Set(names).size !== names.length) return 'Deux événements portent le même nom.';
+    if (names.some((n) => !n)) return this.$t('admin.errEventName');
+    if (new Set(names).size !== names.length) return this.$t('admin.errEventDuplicate');
     return '';
   },
 
@@ -91,7 +91,10 @@ export const adminPage = () => ({
     this.formError = this.validate();
     if (this.formError) return;
     const lost = d.removed.reduce((n, e) => n + e.expenseCount, 0);
-    if (d.removed.length && !confirm(`Supprimer ${d.removed.length} événement(s)${lost ? ` et ${lost} dépense(s)` : ''} ?`)) return;
+    const question = lost
+      ? this.$t('admin.confirmDeleteExpenses', { count: d.removed.length, expenses: lost })
+      : this.$t('admin.confirmDeleteEvents', { count: d.removed.length });
+    if (d.removed.length && !confirm(question)) return;
 
     this.saving = true;
     const created = {};

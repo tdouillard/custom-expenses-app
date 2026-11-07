@@ -1,17 +1,17 @@
 <header class="app-header">
-  <h1>💸 Dépenses &amp; remboursements</h1>
+  <h1 x-text="'💸 ' + $t('app.title')"></h1>
 
-  <nav class="tabs" x-cloak x-show="$store.admin.isAdmin" aria-label="Pages">
-    <button id="nav-dashboard" :aria-current="$store.admin.view === 'dashboard' ? 'page' : null" @click="$store.admin.view = 'dashboard'">Tableau de bord</button>
-    <button id="nav-admin" :aria-current="$store.admin.view === 'admin' ? 'page' : null" @click="$store.admin.view = 'admin'">Administration</button>
+  <nav class="tabs" x-cloak x-show="$store.admin.isAdmin" :aria-label="$t('nav.label')">
+    <button id="nav-dashboard" :aria-current="$store.admin.view === 'dashboard' ? 'page' : null" @click="$store.admin.view = 'dashboard'" x-text="$t('nav.dashboard')"></button>
+    <button id="nav-admin" :aria-current="$store.admin.view === 'admin' ? 'page' : null" @click="$store.admin.view = 'admin'" x-text="$t('nav.admin')"></button>
   </nav>
 
   <div class="header-actions">
-    <button id="share-btn" @click="$dispatch('open-share')">📤 Partager</button>
-    <button class="primary" id="add-expense" @click="$dispatch('open-expense')">+ Ajouter une dépense</button>
+    <button id="share-btn" @click="$dispatch('open-share')" x-text="$t('header.share')"></button>
+    <button class="primary" id="add-expense" @click="$dispatch('open-expense')" x-text="$t('header.addExpense')"></button>
 
     <div class="profile" x-data="{ open: false }" @click.outside="open = false" @keydown.escape.window="open = false">
-      <button class="avatar" id="profile-btn" aria-haspopup="menu" :aria-expanded="open" aria-label="Menu du profil"
+      <button class="avatar" id="profile-btn" aria-haspopup="menu" :aria-expanded="open" :aria-label="$t('menu.profile')"
               @click="open = !open" x-text="$store.auth.initials"></button>
       <div class="profile-menu" role="menu" x-cloak x-show="open" x-transition.opacity.scale.origin.top.right>
         <div class="profile-info">
@@ -19,11 +19,19 @@
           <div>
             <b x-text="$store.auth.displayName"></b>
             <span class="muted user-email" x-text="$store.auth.user?.email"></span>
-            <span class="muted" x-text="$store.admin.isAdmin ? 'Administrateur' : 'Membre'"></span>
+            <span class="muted" x-text="$store.admin.isAdmin ? $t('role.admin') : $t('role.member')"></span>
           </div>
         </div>
-        <button role="menuitem" id="nav-settings" @click="$store.admin.view = 'account'; open = false">⚙️ Paramètres</button>
-        <button role="menuitem" id="sign-out" class="danger" @click="open = false; $store.auth.signOut()">⎋ Déconnexion</button>
+        <label class="profile-language">
+          <span x-text="$t('language.label')"></span>
+          <select id="language-select" name="language" @change="setLanguage($event.target.value)">
+            <template x-for="l in $store.i18n.languages" :key="l.code">
+              <option :value="l.code" :selected="l.code === $store.i18n.lang" x-text="l.label"></option>
+            </template>
+          </select>
+        </label>
+        <button role="menuitem" id="nav-settings" @click="$store.admin.view = 'account'; open = false" x-text="$t('menu.settings')"></button>
+        <button role="menuitem" id="sign-out" class="danger" @click="open = false; $store.auth.signOut()" x-text="$t('menu.signOut')"></button>
       </div>
     </div>
   </div>

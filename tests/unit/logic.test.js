@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { splitEqually, computeBalances, suggestTransfers } from '../../src/core/logic.js';
 import { eur, norm, parseList, balanceLabel, signClass } from '../../src/core/format.js';
+import { t } from '../../src/core/i18n.js';
 import { emptyState, normalizeState, byEventDate } from '../../src/core/state.js';
 import { parseCsv, parseAmount } from '../../src/core/csv.js';
 import { buildShareMessage } from '../../src/core/share.js';
@@ -39,9 +40,9 @@ test('settlements and transfers', () => {
 test('format helpers', () => {
   assert.equal(norm('  Évènement '), 'evenement');
   assert.deepEqual(parseList('a, b,,a'), ['a', 'b']);
-  assert.equal(balanceLabel(0), 'à jour');
+  assert.equal(t(balanceLabel(0)), 'settled up');
   assert.equal(signClass(-1), 'neg');
-  assert.match(eur(12.5), /12,50/);
+  assert.match(eur(12.5), /12\.50/);
 });
 
 test('state normalisation', () => {
@@ -120,7 +121,7 @@ test('buildShareMessage condenses the dashboard without members/events lists', (
   const m = buildShareMessage(s);
   assert.match(m, /Balances/);
   assert.match(m, /Bob → Alice/);
-  assert.match(m, /Trip.*100,00 €/);
-  assert.match(m, /🟢 Hotel — 100,00 € \(Alice 50,00 € · Bob 50,00 €\) — payé par Alice, pour Mamie/);
+  assert.match(m, /Trip.*€100\.00/);
+  assert.match(m, /🟢 Hotel — €100\.00 \(Alice €50\.00 · Bob €50\.00\) — paid by Alice, for Mamie/);
   assert.doesNotMatch(m, /[\u202f\u00a0]/);
 });

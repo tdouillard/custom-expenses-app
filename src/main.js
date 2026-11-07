@@ -1,9 +1,11 @@
 import * as format from './core/format.js';
+import { t } from './core/i18n.js';
 import { loadIncludes, loadScript } from './core/include.js';
 import { SupabaseClient } from './services/supabase.js';
 import { StateRepository } from './services/repository.js';
 import { AdminRepository } from './services/admin.js';
 import { createAdminStore } from './stores/admin.js';
+import { createI18nStore } from './stores/i18n.js';
 import { accountPage } from './components/account/account.js';
 import { adminPage } from './components/admin/admin.js';
 import { forgotPasswordPage } from './components/forgot-password/forgot-password.js';
@@ -26,7 +28,10 @@ await loadIncludes();
 
 document.addEventListener('alpine:init', () => {
   const { Alpine } = window;
-  Alpine.magic('fmt', () => format);
+  Alpine.store('i18n', createI18nStore());
+  /* Reading the store's language makes every binding that uses $t or $fmt re-render when it changes. */
+  Alpine.magic('t', () => (key, vars) => { void Alpine.store('i18n').lang; return t(key, vars); });
+  Alpine.magic('fmt', () => { void Alpine.store('i18n').lang; return format; });
   Alpine.store('data', createDataStore(new StateRepository(client)));
   Alpine.store('auth', createAuthStore(client));
   Alpine.store('admin', createAdminStore(new AdminRepository(client)));

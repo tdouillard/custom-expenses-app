@@ -1,23 +1,25 @@
-/* What the manage dialog shows for each editable collection. Field types: text, date, tags. */
+/* What the manage dialog shows for each editable collection. Labels are translation keys. Field types: text, date, tags. */
 export const COLLECTIONS = {
   members: {
-    title: 'Membres',
-    singular: 'membre',
-    emptyText: 'Aucun membre',
+    title: 'collections.members',
+    addLabel: 'collections.addMember',
+    newLabel: 'collections.newMember',
+    emptyText: 'collections.noMembers',
     fields: [
-      { key: 'name', label: 'Nom', type: 'text', required: true },
-      { key: 'userId', label: 'Utilisateur', type: 'user' },
+      { key: 'name', label: 'field.name', type: 'text', required: true },
+      { key: 'userId', label: 'field.user', type: 'user' },
     ],
   },
   events: {
-    title: 'Événements',
-    singular: 'événement',
-    emptyText: 'Aucun événement',
+    title: 'collections.events',
+    addLabel: 'collections.addEvent',
+    newLabel: 'collections.newEvent',
+    emptyText: 'collections.noEvents',
     sortBy: 'date',
     fields: [
-      { key: 'name', label: 'Nom', type: 'text', required: true },
-      { key: 'date', label: 'Date', type: 'date' },
-      { key: 'recipients', label: 'Pour (personnes)', type: 'tags', placeholder: 'Ajouter une personne' },
+      { key: 'name', label: 'field.name', type: 'text', required: true },
+      { key: 'date', label: 'field.date', type: 'date' },
+      { key: 'recipients', label: 'field.recipients', type: 'tags', placeholder: 'field.addPerson' },
     ],
   },
 };

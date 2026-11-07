@@ -23,7 +23,7 @@ test('manage members and events through the popup, then add and filter expenses'
   await page.fill('input[name=name]', 'Trip');
   await page.fill('input[name=date]', '2024-05-01');
   await page.fill('input[name=recipients-input]', 'Alice, Bob');
-  await page.getByRole('button', { name: 'Ajouter', exact: true }).click();
+  await page.getByRole('button', { name: 'Add', exact: true }).click();
   await page.click('#manage-dlg button[type=submit]');
   await page.click('#manage-close');
   await expect(page.locator('#events-card')).toContainText('Trip');

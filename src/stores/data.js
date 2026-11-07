@@ -1,6 +1,7 @@
 import { emptyState, eventNames } from '../core/state.js';
 import { computeBalances, computeTotals, suggestTransfers } from '../core/logic.js';
 import { balanceLabel } from '../core/format.js';
+import { t } from '../core/i18n.js';
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
@@ -33,7 +34,7 @@ export function createDataStore(repository) {
         this.state = await repository.load();
         this.users = await repository.users().catch(() => []);
       } catch (e) {
-        this.error = `Chargement impossible : ${e.message}`;
+        this.error = t('app.loadError', { message: e.message });
       } finally {
         this.loading = false;
       }
@@ -58,7 +59,7 @@ export function createDataStore(repository) {
         await repository.save(this.state);
       } catch (e) {
         this.state = snapshot;
-        this.error = `Enregistrement impossible : ${e.message}`;
+        this.error = t('app.saveError', { message: e.message });
         return { error: this.error };
       }
       return result;

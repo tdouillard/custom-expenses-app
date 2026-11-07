@@ -1,17 +1,17 @@
 <section class="card" x-data="{ cols: [
-    { key: 'paid', label: 'Dépenses payées' },
-    { key: 'share', label: 'Part des dépenses' },
-    { key: 'sent', label: 'Remboursements versés' },
-    { key: 'received', label: 'Remboursements reçus' },
+    { key: 'paid', label: 'totals.paid' },
+    { key: 'share', label: 'totals.share' },
+    { key: 'sent', label: 'totals.sent' },
+    { key: 'received', label: 'totals.received' },
   ] }">
-  <h2>Totaux par membre</h2>
+  <h2 x-text="$t('totals.title')"></h2>
   <div class="table-wrap">
     <table id="totals">
       <thead>
         <tr>
-          <th>Membre</th>
-          <template x-for="c in cols" :key="c.key"><th x-text="c.label"></th></template>
-          <th>Solde (projeté)</th>
+          <th x-text="$t('common.member')"></th>
+          <template x-for="c in cols" :key="c.key"><th x-text="$t(c.label)"></th></template>
+          <th x-text="$t('totals.projected')"></th>
         </tr>
       </thead>
       <tbody>
@@ -25,12 +25,12 @@
       </tbody>
       <tfoot>
         <tr>
-          <td>Total</td>
+          <td x-text="$t('expenses.total')"></td>
           <template x-for="c in cols" :key="c.key"><td x-text="$fmt.eur($store.data.totals.total[c.key])"></td></template>
           <td></td>
         </tr>
       </tfoot>
     </table>
   </div>
-  <p class="hint">Inclut toutes les dépenses, qu'elles soient payées ou « à payer ».</p>
+  <p class="hint" x-text="$t('totals.hint')"></p>
 </section>

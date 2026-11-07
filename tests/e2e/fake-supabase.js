@@ -39,6 +39,10 @@ export async function fakeSupabase(page, { admin = false } = {}) {
       if (body.password === 'wrongpass') return json(400, { error_code: 'invalid_credentials' });
       return json(200, session);
     }
+    if (route.request().method() === 'PUT') {
+      const body = route.request().postDataJSON();
+      return json(200, { ...user, user_metadata: { ...user.user_metadata, ...body.data } });
+    }
     return json(204, null);
   });
 

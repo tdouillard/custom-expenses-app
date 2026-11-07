@@ -1,7 +1,8 @@
-import { balanceLabel, eur, fmtDate, signedEur } from './format.js';
+import { balanceText, eur, fmtDate, signedEur } from './format.js';
 import { computeBalances, computeTotals, suggestTransfers } from './logic.js';
 import { filterExpenses, rowStatus, sumAmounts } from './expenses.js';
 import { eventDate } from './state.js';
+import { t } from './i18n.js';
 
 const STATUS_ICON = { 'row-paid': '🟢', 'row-warn': '🟠', 'row-due': '🔴' };
 
@@ -14,40 +15,40 @@ export function buildShareMessage(state) {
   const balances = computeBalances(state, { projected: true });
   const transfers = suggestTransfers(balances);
   const { rows, total } = computeTotals(state);
-  const lines = ['💸 Dépenses & remboursements', ''];
+  const lines = [`💸 ${t('app.title')}`, ''];
 
-  lines.push('📊 Balances');
-  if (!state.members.length) lines.push('• Aucun membre');
-  state.members.forEach((m) => lines.push(`• ${m} : ${signedEur(balances[m])} (${balanceLabel(balances[m])})`));
+  lines.push(`📊 ${t('balances.title')}`);
+  if (!state.members.length) lines.push(`• ${t('collections.noMembers')}`);
+  state.members.forEach((m) => lines.push(`• ${m} : ${signedEur(balances[m])} (${balanceText(balances[m])})`));
 
-  lines.push('', '🔁 Pour tout régler');
-  if (!transfers.length) lines.push('• Tout est réglé 🎉');
-  transfers.forEach((t) => lines.push(`• ${t.from} → ${t.to} : ${eur(t.amount)}`));
+  lines.push('', `🔁 ${t('balances.settleUp')}`);
+  if (!transfers.length) lines.push(`• ${t('share.noTransfers')}`);
+  transfers.forEach((x) => lines.push(`• ${x.from} → ${x.to} : ${eur(x.amount)}`));
 
   const settlements = state.settlements || [];
   if (settlements.length) {
-    lines.push('', '✅ Remboursements déjà effectués');
+    lines.push('', t('share.settledDone'));
     settlements.forEach((s) => lines.push(`• ${s.from} → ${s.to} : ${eur(s.amount)}${s.date ? ` (${fmtDate(s.date)})` : ''}`));
   }
 
-  lines.push('', '👥 Totaux par membre (payé / part)');
+  lines.push('', t('share.totalsPerMember'));
   rows.forEach((r) => lines.push(`• ${r.member} : ${eur(r.paid)} / ${eur(r.share)}`));
-  lines.push(`• Total : ${eur(total.paid)} / ${eur(total.share)}`);
+  lines.push(`• ${t('expenses.total')} : ${eur(total.paid)} / ${eur(total.share)}`);
 
   const expenses = filterExpenses(state);
-  lines.push('', '🧾 Dépenses');
-  if (!expenses.length) lines.push('• Aucune dépense');
+  lines.push('', `🧾 ${t('expenses.title')}`);
+  if (!expenses.length) lines.push(`• ${t('expenses.empty')}`);
   const byEvent = new Map();
   expenses.forEach((e) => byEvent.set(e.event, [...(byEvent.get(e.event) || []), e]));
   byEvent.forEach((list, event) => {
     const date = eventDate(state, event);
     lines.push('', `🗓️ ${event}${date ? ` (${fmtDate(date)})` : ''} — ${eur(sumAmounts(list))}`);
     list.forEach((e) => {
-      const who = [e.paidBy && `payé par ${e.paidBy}`, e.recipient && `pour ${e.recipient}`].filter(Boolean).join(', ');
+      const who = [e.paidBy && t('share.paidBy', { name: e.paidBy }), e.recipient && t('share.forWhom', { name: e.recipient })].filter(Boolean).join(', ');
       const repartition = Object.entries(e.split || {}).map(([m, v]) => `${m} ${eur(v)}`).join(' · ');
       lines.push(`${STATUS_ICON[rowStatus(e)]} ${e.label} — ${eur(e.amount)}${repartition ? ` (${repartition})` : ''}${who ? ` — ${who}` : ''}`);
     });
   });
-  lines.push('', '🟢 payé · 🟠 commande en attente · 🔴 à payer');
+  lines.push('', t('share.legend'));
   return plain(lines.join('\n'));
 }

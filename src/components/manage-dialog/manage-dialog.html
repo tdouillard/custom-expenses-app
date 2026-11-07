@@ -1,5 +1,5 @@
 <dialog x-ref="dlg" id="manage-dlg">
-  <h2 x-text="config.title"></h2>
+  <h2 x-text="$t(config.title)"></h2>
 
   <div x-show="view === 'list'">
     <ul class="item-list" id="manage-list">
@@ -9,7 +9,7 @@
           <template x-for="f in extraFields" :key="f.key">
             <span class="item-field">
               <template x-if="f.type === 'date'">
-                <span class="muted" x-text="$fmt.fmtDate(row.item[f.key]) || 'Sans date'"></span>
+                <span class="muted" x-text="$fmt.fmtDate(row.item[f.key]) || $t('common.noDate')"></span>
               </template>
               <template x-if="f.type === 'user'">
                 <span class="chips"><span class="chip" x-show="row.item[f.key]" x-text="$store.data.userLabel(row.item[f.key])"></span></span>
@@ -17,42 +17,42 @@
               <template x-if="f.type === 'tags'">
                 <span class="chips">
                   <template x-for="p in row.item[f.key]" :key="p"><span class="chip" x-text="p"></span></template>
-                  <span class="muted" x-show="!row.item[f.key].length">Aucune personne</span>
+                  <span class="muted" x-show="!row.item[f.key].length" x-text="$t('common.noPeople')"></span>
                 </span>
               </template>
             </span>
           </template>
-          <button class="icon-btn" :title="'Modifier ' + row.item.name" :aria-label="'Modifier ' + row.item.name"
+          <button class="icon-btn" :title="$t('common.editItem', { name: row.item.name })" :aria-label="$t('common.editItem', { name: row.item.name })"
                   @click="startEdit(row.index, row.item)">✏️</button>
         </li>
       </template>
-      <li class="muted" x-show="!rows.length" x-text="config.emptyText"></li>
+      <li class="muted" x-show="!rows.length" x-text="$t(config.emptyText)"></li>
     </ul>
     <menu>
-      <button type="button" id="manage-add" @click="add()" x-text="`+ Ajouter un ${config.singular}`"></button>
-      <button class="primary" type="button" id="manage-close" @click="closeDialog()">Fermer</button>
+      <button type="button" id="manage-add" @click="add()" x-text="$t(config.addLabel)"></button>
+      <button class="primary" type="button" id="manage-close" @click="closeDialog()" x-text="$t('common.close')"></button>
     </menu>
   </div>
 
   <template x-if="view === 'edit'">
     <form @submit.prevent="save()">
-      <h3 x-text="editing ? `Modifier « ${draft.name} »` : `Nouveau ${config.singular}`"></h3>
+      <h3 x-text="editing ? $t('collections.editTitle', { name: draft.name }) : $t(config.newLabel)"></h3>
       <template x-for="f in config.fields" :key="f.key">
         <div class="field">
           <template x-if="f.type === 'text'">
-            <label><span x-text="f.label"></span>
+            <label><span x-text="$t(f.label)"></span>
               <input :name="f.key" x-model="draft[f.key]" :required="f.required">
             </label>
           </template>
           <template x-if="f.type === 'date'">
-            <label><span x-text="f.label"></span>
+            <label><span x-text="$t(f.label)"></span>
               <input type="date" :name="f.key" x-model="draft[f.key]">
             </label>
           </template>
           <template x-if="f.type === 'user'">
-            <label><span x-text="f.label"></span>
+            <label><span x-text="$t(f.label)"></span>
               <select :name="f.key" x-model="draft[f.key]" @change="pickUser(f)">
-                <option value="">Membre personnalisé (sans utilisateur)</option>
+                <option value="" x-text="$t('collections.customMember')"></option>
                 <template x-for="u in $store.data.freeUsers(draft[f.key])" :key="u.id">
                   <option :value="u.id" :selected="u.id === draft[f.key]" x-text="u.name || u.email"></option>
                 </template>
@@ -61,19 +61,19 @@
           </template>
           <template x-if="f.type === 'tags'">
             <fieldset>
-              <legend x-text="f.label"></legend>
+              <legend x-text="$t(f.label)"></legend>
               <div class="chips">
                 <template x-for="(p, i) in draft[f.key]" :key="p">
                   <span class="chip"><span x-text="p"></span>
-                    <button type="button" class="link" :aria-label="'Retirer ' + p" @click="removeTag(f, i)">✕</button>
+                    <button type="button" class="link" :aria-label="$t('common.removeItem', { name: p })" @click="removeTag(f, i)">✕</button>
                   </span>
                 </template>
-                <span class="muted" x-show="!draft[f.key].length">Aucune personne</span>
+                <span class="muted" x-show="!draft[f.key].length" x-text="$t('common.noPeople')"></span>
               </div>
               <div class="inline">
-                <input :name="f.key + '-input'" list="member-names" :placeholder="f.placeholder"
+                <input :name="f.key + '-input'" list="member-names" :placeholder="$t(f.placeholder)"
                        x-model="tagInputs[f.key]" @keydown.enter.prevent="addTags(f)">
-                <button type="button" @click="addTags(f)">Ajouter</button>
+                <button type="button" @click="addTags(f)" x-text="$t('common.add')"></button>
               </div>
             </fieldset>
           </template>
@@ -81,9 +81,9 @@
       </template>
       <div class="form-error" role="alert" id="manage-error" x-cloak x-show="error" x-text="error"></div>
       <menu>
-        <button type="button" class="danger" id="manage-delete" x-show="editing" @click="remove()">Supprimer</button>
-        <button type="button" id="manage-back" @click="back()">Retour</button>
-        <button class="primary" type="submit">Enregistrer</button>
+        <button type="button" class="danger" id="manage-delete" x-show="editing" @click="remove()" x-text="$t('common.delete')"></button>
+        <button type="button" id="manage-back" @click="back()" x-text="$t('common.back')"></button>
+        <button class="primary" type="submit" x-text="$t('common.save')"></button>
       </menu>
     </form>
   </template>

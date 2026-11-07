@@ -1,3 +1,5 @@
+import { t } from '../core/i18n.js';
+
 /* Admin state: whether the user is an admin, which page is shown, and the users / events / access lists. */
 export function createAdminStore(repository) {
   return {
@@ -31,7 +33,7 @@ export function createAdminStore(repository) {
       try {
         Object.assign(this, await repository.overview());
       } catch (e) {
-        this.error = `Chargement impossible : ${e.message}`;
+        this.error = t('app.loadError', { message: e.message });
       } finally {
         this.loading = false;
       }
@@ -43,7 +45,7 @@ export function createAdminStore(repository) {
       try {
         await action(repository);
       } catch (e) {
-        this.error = `Action impossible : ${e.message}`;
+        this.error = t('app.actionError', { message: e.message });
         await this.refresh();
         return { error: this.error };
       }

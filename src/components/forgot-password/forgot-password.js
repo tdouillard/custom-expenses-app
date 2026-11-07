@@ -9,17 +9,17 @@ export const forgotPasswordPage = () => ({
   state: idle(),
 
   async sendReset() {
-    if (!this.email.trim()) { this.state.error = 'Saisissez votre adresse email.'; return; }
+    if (!this.email.trim()) { this.state.error = this.$t('forgot.errEmail'); return; }
     const done = await this.run(() => this.$store.auth.resetPassword(this.email),
-      () => 'Un email a été envoyé. Ouvrez le lien pour définir un nouveau mot de passe.');
+      () => this.$t('forgot.emailSent'));
     if (done) { this.email = ''; this.step = 'wait'; }
   },
 
   async reset() {
-    if (this.password.length < 6) { this.state.error = 'Mot de passe trop court (6 caractères minimum).'; return; }
-    if (this.password !== this.confirm) { this.state.error = 'Les mots de passe ne correspondent pas.'; return; }
+    if (this.password.length < 6) { this.state.error = this.$t('forgot.errShort'); return; }
+    if (this.password !== this.confirm) { this.state.error = this.$t('forgot.errMismatch'); return; }
     const done = await this.run(() => this.$store.auth.changePassword(this.password),
-      () => 'Mot de passe modifié. Vous pouvez à présent vous connecter.');
+      () => this.$t('forgot.passwordChanged'));
     if (done) { this.password = ''; this.confirm = ''; this.step = 'done'; setTimeout(() => { location.hash = '#'; }, 2000); }
   },
 

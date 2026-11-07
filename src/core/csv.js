@@ -1,6 +1,7 @@
 import { norm } from './format.js';
 import { round, splitEqually } from './logic.js';
 import { newId } from './expenses.js';
+import { t } from './i18n.js';
 
 export function parseCsv(text) {
   const rows = [];
@@ -56,11 +57,11 @@ function findMember(members, name) {
 }
 
 const COLUMN_PATTERNS = {
-  label: /^(cadeau|libelle|label|depense)/,
-  amount: /^montant|^amount|^prix/,
-  payer: /^paye par|^paid|^payeur/,
-  rest: /^restant|^remaining/,
-  status: /^statut|^status|^commentaire/,
+  label: /^(cadeau|libelle|label|depense|gift|bezeichnung|ausgabe)/,
+  amount: /^(montant|amount|prix|betrag)/,
+  payer: /^(paye par|paid|payeur|bezahlt|zahler)/,
+  rest: /^(restant|remaining|rest)/,
+  status: /^(statut|status|commentaire|comment|kommentar)/,
 };
 
 /* Turns CSV text into new expenses for `event` (split equally among all members).
@@ -70,7 +71,7 @@ export function importExpenses(state, text, event) {
   const head = (rows.shift() || []).map(norm);
   const idx = Object.fromEntries(Object.entries(COLUMN_PATTERNS).map(([k, re]) => [k, head.findIndex((h) => re.test(h))]));
   if (idx.label < 0 || idx.amount < 0 || idx.payer < 0) {
-    return { error: 'Colonnes attendues : Cadeau, Montant, Payé par (+ Restant, Statut).' };
+    return { error: t('import.columns') };
   }
   const added = [];
   const skipped = [];
@@ -79,11 +80,15 @@ export function importExpenses(state, text, event) {
     const label = (r[idx.label] || '').trim();
     const amount = round(parseAmount(r[idx.amount]));
     const payer = findMember(state.members, r[idx.payer]);
-    if (!label || !(amount > 0) || !payer) {
-      skipped.push(`ligne ${n + 2} (${label || '?'}${payer ? '' : ` : payeur « ${r[idx.payer] || ''} » inconnu`})`);
+    if (!label || !(amount > 0)) {
+      skipped.push(t('csv.skippedLine', { line: n + 2, label: label || '?' }));
       return;
     }
-    if (exists({ label, amount, paidBy: payer })) { skipped.push(`ligne ${n + 2} (${label} : déjà présent)`); return; }
+    if (!payer) {
+      skipped.push(t('csv.skippedPayer', { line: n + 2, label, name: r[idx.payer] || '' }));
+      return;
+    }
+    if (exists({ label, amount, paidBy: payer })) { skipped.push(t('csv.skippedDuplicate', { line: n + 2, label })); return; }
     const rest = idx.rest >= 0 ? parseAmount(r[idx.rest]) : 0;
     added.push({
       id: newId(), label, event, recipient: '', paidBy: payer, amount,

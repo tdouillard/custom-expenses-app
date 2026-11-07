@@ -48,9 +48,9 @@ test('password change surfaces the re-authentication requirement and reauthentic
   assert.equal(calls.at(-1).url, 'https://x.supabase.co/auth/v1/reauthenticate');
 });
 
-test('invalid credentials map to a French message', async () => {
+test('invalid credentials map to a readable message', async () => {
   const { c } = client(() => json(400, { error_code: 'invalid_credentials' }));
-  await assert.rejects(() => c.signIn('a', 'b'), (e) => e instanceof ApiError && /incorrect/.test(e.message));
+  await assert.rejects(() => c.signIn('a', 'b'), (e) => e instanceof ApiError && /Incorrect/.test(e.message));
 });
 
 

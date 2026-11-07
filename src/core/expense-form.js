@@ -2,6 +2,7 @@ import { round, splitEqually } from './logic.js';
 import { eventNames, findEvent } from './state.js';
 import { parseList } from './format.js';
 import { newId } from './expenses.js';
+import { locale, t } from './i18n.js';
 
 export const NEW_EVENT = '__new__';
 
@@ -50,16 +51,16 @@ export function recipientOptions(state, form) {
 export function submitExpense(state, form) {
   const isNew = form.event === NEW_EVENT;
   const typed = form.newEvent.name.trim();
-  if (isNew && !typed) return { error: 'Saisissez le nom du nouvel événement.' };
+  if (isNew && !typed) return { error: t('expense.errEvent') };
   const amount = round(parseFloat(form.amount));
-  if (!Number.isFinite(amount)) return { error: 'Saisissez un montant.' };
+  if (!Number.isFinite(amount)) return { error: t('expense.errAmount') };
   const on = Object.keys(form.split).filter((m) => form.split[m].on);
-  if (!on.length) return { error: 'Sélectionnez au moins un participant.' };
+  if (!on.length) return { error: t('expense.errParticipant') };
   const split = Object.fromEntries(Object.entries(form.split)
     .map(([m, s]) => [m, s.on ? round(parseFloat(s.amount) || 0) : 0]));
   const total = round(Object.values(split).reduce((a, b) => a + b, 0));
   if (total !== amount) {
-    return { error: `La somme des parts des participants sélectionnés (${fmt(total)}) doit être égale au montant (${fmt(amount)}).` };
+    return { error: t('expense.errSum', { total: fmt(total), amount: fmt(amount) }) };
   }
   const eventName = isNew ? (findEvent(state, typed)?.name ?? typed) : form.event;
   if (isNew) {
@@ -78,4 +79,4 @@ export function submitExpense(state, form) {
   return {};
 }
 
-const fmt = (n) => n.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
+const fmt = (n) => n.toLocaleString(locale(), { style: 'currency', currency: 'EUR' });

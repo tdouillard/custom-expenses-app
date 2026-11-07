@@ -1,14 +1,15 @@
+import { locale } from './i18n.js';
 import { eventDate } from './state.js';
 
 export const ORDER = {
-  na: { label: 'Non nécessaire', cls: 'b-na' },
-  waiting: { label: 'En attente', cls: 'b-warn' },
-  sent: { label: 'Envoyé', cls: 'b-ok' },
+  na: { label: 'order.na', cls: 'b-na' },
+  waiting: { label: 'order.waiting', cls: 'b-warn' },
+  sent: { label: 'order.sent', cls: 'b-ok' },
 };
 export const ORDER_CYCLE = Object.keys(ORDER);
 export const PAYMENT = {
-  due: { label: 'À payer', cls: 'b-bad' },
-  paid: { label: 'Payé', cls: 'b-ok' },
+  due: { label: 'payment.due', cls: 'b-bad' },
+  paid: { label: 'payment.paid', cls: 'b-ok' },
 };
 
 const toOptions = (map) => Object.entries(map).map(([value, { label }]) => ({ value, label }));
@@ -32,7 +33,7 @@ const MATCHERS = {
   order: (e, v) => e.order === v,
 };
 
-const byText = (a, b) => String(a || '').localeCompare(String(b || ''), 'fr', { sensitivity: 'base', numeric: true });
+const byText = (a, b) => String(a || '').localeCompare(String(b || ''), locale(), { sensitivity: 'base', numeric: true });
 const byEvent = (state) => (a, b) => (eventDate(state, a.event) || NO_DATE).localeCompare(eventDate(state, b.event) || NO_DATE) || byText(a.event, b.event);
 const count = (e) => Object.values(e.split || {}).filter((v) => v > 0).length;
 

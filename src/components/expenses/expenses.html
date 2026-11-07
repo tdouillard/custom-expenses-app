@@ -1,8 +1,8 @@
 <section class="card" id="expenses-card">
   <div class="card-head">
-    <h2>Dépenses</h2>
+    <h2 x-text="$t('expenses.title')"></h2>
     <div class="head-actions">
-      <button id="import-btn" @click="$dispatch('open-import')">⬆️ Importer CSV</button>
+      <button id="import-btn" @click="$dispatch('open-import')" x-text="$t('expenses.import')"></button>
     </div>
   </div>
 
@@ -10,20 +10,20 @@
     <template x-if="eventColumn">
       <div class="toolbar-event" :aria-sort="ariaSort('event')">
         <details class="multi-filter" id="filter-event" @click.outside="$el.open = false">
-          <summary :class="{ active: filters.event.length }" aria-label="Filtrer par événement" x-text="eventSummary()"></summary>
+          <summary :class="{ active: filters.event.length }" :aria-label="$t('expenses.filterEvent')" x-text="eventSummary()"></summary>
           <div class="multi-menu">
             <template x-for="o in optionsFor(eventColumn.filter.options)" :key="o.value">
               <label class="check">
                 <input type="checkbox" :value="o.value" :checked="filters.event.includes(o.value)" @change="toggleEvent(o.value)">
-                <span x-text="o.label"></span>
+                <span x-text="$t(o.label)"></span>
               </label>
             </template>
-            <button type="button" class="link" x-show="filters.event.length" @click="filters.event = []">Tout afficher</button>
+            <button type="button" class="link" x-show="filters.event.length" @click="filters.event = []" x-text="$t('expenses.showAll')"></button>
           </div>
         </details>
         <button type="button" class="sort-btn" :class="{ active: sortDir('event') }" data-sort="event"
-                title="Trier les événements" aria-label="Trier les événements" @click="toggleSort('event')">
-          <span>Trier les événements</span>
+                :title="$t('expenses.sortEvents')" :aria-label="$t('expenses.sortEvents')" @click="toggleSort('event')">
+          <span x-text="$t('expenses.sortEvents')"></span>
           <span class="sort-arrow" aria-hidden="true" x-text="sortDir('event') === 'asc' ? '▲' : sortDir('event') === 'desc' ? '▼' : '↕'"></span>
         </button>
       </div>
@@ -35,7 +35,7 @@
       <section class="event-group">
         <header class="group-head">
           <span class="group-name" x-text="'🗓️ ' + g.event"></span>
-          <span class="muted" x-text="($fmt.fmtDate(g.date) || 'Sans date') + ' · ' + g.rows.length + ' dépense(s)'"></span>
+          <span class="muted" x-text="($fmt.fmtDate(g.date) || $t('common.noDate')) + ' · ' + $t('common.expenseCount', { count: g.rows.length })"></span>
           <b class="group-total" x-text="$fmt.eur(g.total)"></b>
         </header>
 
@@ -50,20 +50,20 @@
                   <th :class="'cell-' + col.cell" :aria-sort="col.sort ? ariaSort(col.key) : null">
                     <template x-if="col.filter">
                       <select class="th-filter" :id="'filter-' + col.filter.key" :class="{ active: filters[col.filter.key] }"
-                              :aria-label="'Filtrer par ' + col.label" x-model="filters[col.filter.key]">
-                        <option value="" :selected="!filters[col.filter.key]" x-text="col.label"></option>
+                              :aria-label="$t('expenses.filterBy', { label: $t(col.label) })" x-model="filters[col.filter.key]">
+                        <option value="" :selected="!filters[col.filter.key]" x-text="$t(col.label)"></option>
                         <template x-for="o in optionsFor(col.filter.options)" :key="o.value">
-                          <option :value="o.value" :selected="o.value === filters[col.filter.key]" x-text="o.label"></option>
+                          <option :value="o.value" :selected="o.value === filters[col.filter.key]" x-text="$t(o.label)"></option>
                         </template>
                       </select>
                     </template>
                     <template x-if="!col.filter && !col.sort">
-                      <span x-text="col.label"></span>
+                      <span x-text="$t(col.label)"></span>
                     </template>
                     <template x-if="col.sort">
                       <button type="button" class="sort-btn" :class="{ active: sortDir(col.key) }" :data-sort="col.key"
-                              :title="'Trier par ' + col.label" :aria-label="'Trier par ' + col.label" @click="toggleSort(col.key)">
-                        <span x-show="!col.filter" x-text="col.label"></span>
+                              :title="$t('expenses.sortBy', { label: $t(col.label) })" :aria-label="$t('expenses.sortBy', { label: $t(col.label) })" @click="toggleSort(col.key)">
+                        <span x-show="!col.filter" x-text="$t(col.label)"></span>
                         <span class="sort-arrow" aria-hidden="true" x-text="sortDir(col.key) === 'asc' ? '▲' : sortDir(col.key) === 'desc' ? '▼' : '↕'"></span>
                       </button>
                     </template>
@@ -103,15 +103,15 @@
                         </div>
                       </template>
                       <template x-if="col.cell === 'payment'">
-                        <span class="badge pill" :class="paymentInfo(e).cls"><i></i><span x-text="paymentInfo(e).label"></span></span>
+                        <span class="badge pill" :class="paymentInfo(e).cls"><i></i><span x-text="$t(paymentInfo(e).label)"></span></span>
                       </template>
                       <template x-if="col.cell === 'order'">
-                        <span class="badge pill" :class="orderInfo(e.order).cls"><i></i><span x-text="orderInfo(e.order).label"></span></span>
+                        <span class="badge pill" :class="orderInfo(e.order).cls"><i></i><span x-text="$t(orderInfo(e.order).label)"></span></span>
                       </template>
                       <template x-if="col.cell === 'actions'">
                         <span class="row-actions">
-                          <button class="link" :aria-label="'Modifier ' + e.label" :data-edit="e.id" @click="edit(e)">✏️</button>
-                          <button class="link" :aria-label="'Supprimer ' + e.label" :data-del="e.id" @click="remove(e)">🗑️</button>
+                          <button class="link" :aria-label="$t('common.editItem', { name: e.label })" :data-edit="e.id" @click="edit(e)">✏️</button>
+                          <button class="link" :aria-label="$t('common.deleteItem', { name: e.label })" :data-del="e.id" @click="remove(e)">🗑️</button>
                         </span>
                       </template>
                     </td>
@@ -123,11 +123,11 @@
         </div>
       </section>
     </template>
-    <p class="muted" x-show="!rows.length">Aucune dépense</p>
+    <p class="muted" x-show="!rows.length" x-text="$t('expenses.empty')"></p>
   </div>
 
   <div class="expenses-total">
-    <span>Total</span>
+    <span x-text="$t('expenses.total')"></span>
     <b id="expenses-total" x-text="$fmt.eur(total)"></b>
   </div>
 </section>

@@ -35,7 +35,6 @@ export function createAuthStore(client, { location = globalThis.location, histor
 
     get meta() { return this.user?.user_metadata || {}; },
     get displayName() { return this.meta.username || (this.user?.email || '').split('@')[0]; },
-    get language() { return this.meta.language || 'fr'; },
     get initials() {
       const parts = this.displayName.split(/[._\-+\s]+/).filter(Boolean);
       return (parts.length > 1 ? parts[0][0] + parts[1][0] : this.displayName.slice(0, 2) || '?').toUpperCase();

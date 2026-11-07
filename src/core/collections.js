@@ -1,3 +1,4 @@
+import { t } from './i18n.js';
 import { norm } from './format.js';
 
 /* Generic add / rename / delete of the collections shown in the manage dialog (members, events).
@@ -53,7 +54,7 @@ const HANDLERS = {
   },
 };
 
-const LABELS = { members: 'membre', events: 'événement' };
+const LABELS = { members: 'collections.nameTakenMember', events: 'collections.nameTakenEvent' };
 
 export const itemsOf = (state, kind) => HANDLERS[kind].items(state);
 
@@ -68,11 +69,11 @@ export const blankItem = (kind) => HANDLERS[kind].blank();
 function validate(state, kind, index, draft) {
   const h = HANDLERS[kind];
   const name = String(draft.name ?? '').trim();
-  if (!name) return 'Saisissez un nom.';
+  if (!name) return t('common.enterName');
   const clash = h.names(state).some((n, i) => i !== index && norm(n) === norm(name));
-  if (clash) return `Un ${LABELS[kind]} porte déjà ce nom.`;
+  if (clash) return t(LABELS[kind]);
   if (kind === 'members' && draft.userId && state.members.some((n, i) => i !== index && links(state)[n] === draft.userId)) {
-    return 'Cet utilisateur est déjà associé à un autre membre.';
+    return t('collections.userLinked');
   }
   return '';
 }
@@ -82,7 +83,7 @@ export function linkMember(state, userId, memberName, newName = '') {
   Object.keys(links(state)).forEach((n) => { if (links(state)[n] === userId) delete links(state)[n]; });
   if (!memberName) return {};
   const index = state.members.indexOf(memberName);
-  if (index < 0) return { error: `Membre « ${memberName} » introuvable.` };
+  if (index < 0) return { error: t('collections.memberNotFound', { name: memberName }) };
   return saveItem(state, 'members', index, { name: newName || memberName, userId });
 }
 
@@ -100,7 +101,7 @@ export function removeItem(state, kind, index) {
   const h = HANDLERS[kind];
   const name = h.nameAt(state, index);
   const used = h.usage(state, name);
-  if (used) return { error: `« ${name} » est utilisé par ${used} élément(s) et ne peut pas être supprimé.` };
+  if (used) return { error: t('collections.inUse', { name, count: used }) };
   h.remove(state, index);
   return {};
 }

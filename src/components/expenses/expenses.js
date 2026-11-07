@@ -47,7 +47,7 @@ export const expenses = () => ({
 
   eventSummary() {
     const n = this.filters.event.length;
-    return n === 0 ? 'Tous les événements' : n === 1 ? this.filters.event[0] : `${n} événements`;
+    return n === 0 ? this.$t('expenses.allEvents') : n === 1 ? this.filters.event[0] : this.$t('expenses.eventsSelected', { count: n });
   },
   toggleEvent(name) {
     const list = this.filters.event;
@@ -84,7 +84,7 @@ export const expenses = () => ({
   edit(e) { this.$dispatch('open-expense', { id: e.id }); },
 
   remove(e) {
-    if (!confirm('Supprimer cette dépense ?')) return;
+    if (!confirm(this.$t('expenses.confirmDelete'))) return;
     return this.$store.data.commit((s) => { s.expenses = s.expenses.filter((x) => x.id !== e.id); });
   },
 });

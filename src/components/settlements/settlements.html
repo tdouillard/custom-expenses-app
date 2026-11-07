@@ -1,7 +1,7 @@
 <section class="card" id="settlements-card">
   <div class="card-head">
-    <h2>Remboursements</h2>
-    <button class="icon-btn" id="add-settlement" title="Enregistrer un remboursement" aria-label="Enregistrer un remboursement"
+    <h2 x-text="$t('settlements.title')"></h2>
+    <button class="icon-btn" id="add-settlement" :title="$t('settlements.record')" :aria-label="$t('settlements.record')"
             @click="$dispatch('open-settle')">＋</button>
   </div>
   <ul class="settle-list" id="settlements">
@@ -10,9 +10,9 @@
         <span class="settle-who"><b x-text="s.from"></b><span class="arrow">→</span><b x-text="s.to"></b></span>
         <span class="settle-amt" x-text="$fmt.eur(s.amount)"></span>
         <span class="muted settle-date" x-text="$fmt.fmtDate(s.date)"></span>
-        <button class="link" :aria-label="'Supprimer le remboursement ' + (i + 1)" @click="remove(i)">✕</button>
+        <button class="link" :aria-label="$t('settlements.delete', { n: i + 1 })" @click="remove(i)">✕</button>
       </li>
     </template>
-    <li class="muted" x-show="!$store.data.state.settlements.length">Aucun remboursement</li>
+    <li class="muted" x-show="!$store.data.state.settlements.length" x-text="$t('settlements.empty')"></li>
   </ul>
 </section>

@@ -1,15 +1,23 @@
 <section class="login-wrap">
   <form class="card login-card" @submit.prevent="$store.auth.submit()">
-    <h1>💸 Dépenses &amp; remboursements</h1>
-    <h2>Connexion</h2>
-    <label>Email
+    <h1 x-text="'💸 ' + $t('app.title')"></h1>
+    <h2 x-text="$t('login.title')"></h2>
+    <label><span x-text="$t('common.email')"></span>
       <input type="email" name="email" autocomplete="email" required x-model="$store.auth.email">
     </label>
-    <label>Mot de passe
+    <label><span x-text="$t('common.password')"></span>
       <input type="password" name="password" required autocomplete="current-password" x-model="$store.auth.password">
     </label>
     <div class="form-error" role="alert" x-cloak x-show="$store.auth.error" x-text="$store.auth.error"></div>
-    <button class="primary" type="submit" :disabled="$store.auth.busy">Se connecter</button>
-    <a href="#/auth/forgot-password" class="link-button">Mot de passe oublié ?</a>
+    <button class="primary" type="submit" :disabled="$store.auth.busy" x-text="$t('login.submit')"></button>
+    <a href="#/auth/forgot-password" class="link-button" x-text="$t('auth.forgotPassword')"></a>
+    <label>
+      <span x-text="$t('language.label')"></span>
+      <select name="language" @change="setLanguage($event.target.value)">
+        <template x-for="l in $store.i18n.languages" :key="l.code">
+          <option :value="l.code" :selected="l.code === $store.i18n.lang" x-text="l.label"></option>
+        </template>
+      </select>
+    </label>
   </form>
 </section>

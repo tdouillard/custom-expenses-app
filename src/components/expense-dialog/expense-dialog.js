@@ -10,7 +10,6 @@ export const expenseDialog = () => ({
   form: null,
 
   get state() { return this.$store.data.state; },
-  get title() { return this.form?.id ? 'Modifier la dépense' : 'Nouvelle dépense'; },
   get recipients() { return this.form ? recipientOptions(this.state, this.form) : []; },
   get splitTotal() { return this.form ? splitTotal(this.form) : 0; },
   get amount() { return round(parseFloat(this.form?.amount) || 0); },

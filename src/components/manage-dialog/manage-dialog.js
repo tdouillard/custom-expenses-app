@@ -42,7 +42,7 @@ export const manageDialog = () => ({
   },
 
   async remove() {
-    if (!confirm(`Supprimer « ${this.draft.name} » ?`)) return;
+    if (!confirm(this.$t('collections.confirmDelete', { name: this.draft.name }))) return;
     const result = await this.$store.data.commit((s) => removeItem(s, this.kind, this.index));
     if (result.error) this.error = result.error;
     else this.back();

@@ -1,19 +1,22 @@
+import { t } from '../core/i18n.js';
+
 const SESSION_KEY = 'expenses.session';
 const EXPIRY_SKEW_SECONDS = 60;
 
+/* Maps Supabase error codes to translation keys (see i18n dictionaries). */
 const KNOWN_ERRORS = {
-  invalid_credentials: 'Email ou mot de passe incorrect.',
-  email_not_confirmed: 'Confirmez votre adresse email avant de vous connecter.',
-  user_already_exists: 'Un compte existe déjà avec cet email.',
-  weak_password: 'Mot de passe trop faible (6 caractères minimum).',
-  over_email_send_rate_limit: 'Trop de tentatives, réessayez plus tard.',
-  signup_disabled: 'Les inscriptions sont désactivées.',
-  validation_failed: 'Email ou mot de passe invalide.',
-  same_password: 'Le nouveau mot de passe doit être différent de l’actuel.',
-  reauthentication_needed: 'Vérification requise : saisissez le code de vérification reçu par email.',
-  reauthentication_not_valid: 'Code de vérification invalide ou expiré.',
-  email_exists: 'Cette adresse email est déjà utilisée.',
-  email_address_invalid: 'Adresse email invalide.',
+  invalid_credentials: 'error.invalid_credentials',
+  email_not_confirmed: 'error.email_not_confirmed',
+  user_already_exists: 'error.user_already_exists',
+  weak_password: 'error.weak_password',
+  over_email_send_rate_limit: 'error.over_email_send_rate_limit',
+  signup_disabled: 'error.signup_disabled',
+  validation_failed: 'error.validation_failed',
+  same_password: 'error.same_password',
+  reauthentication_needed: 'error.reauthentication_needed',
+  reauthentication_not_valid: 'error.reauthentication_not_valid',
+  email_exists: 'error.email_exists',
+  email_address_invalid: 'error.email_address_invalid',
 };
 
 export class ApiError extends Error {
@@ -26,9 +29,9 @@ export class ApiError extends Error {
 
 function messageOf(data, status) {
   const code = data?.error_code || data?.code;
-  if (KNOWN_ERRORS[code]) return KNOWN_ERRORS[code];
-  if (/invalid login credentials/i.test(data?.msg || data?.message || '')) return KNOWN_ERRORS.invalid_credentials;
-  return data?.msg || data?.message || data?.error_description || data?.error || `Erreur ${status}`;
+  if (KNOWN_ERRORS[code]) return t(KNOWN_ERRORS[code]);
+  if (/invalid login credentials/i.test(data?.msg || data?.message || '')) return t(KNOWN_ERRORS.invalid_credentials);
+  return data?.msg || data?.message || data?.error_description || data?.error || `Error ${status}`;
 }
 
 /* Tiny Supabase client: GoTrue email/password auth and PostgREST calls over fetch, with a persisted session. */
@@ -60,7 +63,7 @@ export class SupabaseClient {
         body: body === undefined ? undefined : JSON.stringify(body),
       });
     } catch {
-      throw new ApiError('Réseau indisponible.');
+      throw new ApiError(t('error.network'));
     }
     const text = await res.text();
     let data = null;
@@ -90,7 +93,7 @@ export class SupabaseClient {
   async createUser(email, password) {
     const data = await this.#call('/auth/v1/signup', { method: 'POST', body: { email, password } });
     const id = data?.user?.id || data?.id;
-    if (!id) throw new ApiError('Création du compte impossible.');
+    if (!id) throw new ApiError(t('error.createAccount'));
     return id;
   }
 
@@ -106,7 +109,7 @@ export class SupabaseClient {
 
   async refresh() {
     const refreshToken = this.session?.refresh_token;
-    if (!refreshToken) throw new ApiError('Session expirée.', 401);
+    if (!refreshToken) throw new ApiError(t('error.sessionExpired'), 401);
     try {
       this.#storeTokens(await this.#call('/auth/v1/token?grant_type=refresh_token', { method: 'POST', body: { refresh_token: refreshToken } }));
     } catch (e) {
@@ -116,7 +119,7 @@ export class SupabaseClient {
   }
 
   async accessToken() {
-    if (!this.session) throw new ApiError('Non connecté.', 401);
+    if (!this.session) throw new ApiError(t('error.notSignedIn'), 401);
     if (this.session.expires_at - EXPIRY_SKEW_SECONDS <= this.now() / 1000) await this.refresh();
     return this.session.access_token;
   }

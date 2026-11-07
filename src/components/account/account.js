@@ -3,7 +3,7 @@ const idle = () => ({ ok: '', error: '', busy: false });
 /* Account page: profile (username, language) and email change. Password reset uses forgot password flow. */
 export const accountPage = () => ({
   username: '',
-  language: 'fr',
+  language: 'en',
   email: '',
   profile: idle(),
   emailState: idle(),
@@ -17,7 +17,7 @@ export const accountPage = () => ({
   fill() {
     const auth = this.$store.auth;
     this.username = auth.meta.username || '';
-    this.language = auth.language;
+    this.language = this.$store.i18n.lang;
   },
 
   async run(state, action, success) {
@@ -35,23 +35,25 @@ export const accountPage = () => ({
   },
 
   async saveProfile() {
-    await this.run(this.profile, () => this.$store.auth.saveProfile({ username: this.username, language: this.language }), () => 'Profil enregistré.');
-    document.documentElement.lang = this.$store.auth.language;
+    const language = this.language;
+    const done = await this.run(this.profile, () => this.$store.auth.saveProfile({ username: this.username, language }),
+      () => this.$t('account.saved'));
+    if (done) this.$store.i18n.set(language);
   },
 
   async changeEmail() {
     const next = this.email.trim();
     if (!next || next.toLowerCase() === this.$store.auth.user.email.toLowerCase()) {
-      this.emailState.error = 'Saisissez une nouvelle adresse.';
+      this.emailState.error = this.$t('account.emailEmpty');
       return;
     }
     const done = await this.run(this.emailState, () => this.$store.auth.changeEmail(next),
-      () => 'Un email de confirmation a été envoyé. Ouvrez le lien pour valider le changement.');
+      () => this.$t('account.emailSent'));
     if (done) this.email = '';
   },
 
   async forgotPassword() {
     await this.run(this.passwordState, () => this.$store.auth.resetPassword(this.$store.auth.user.email),
-      () => 'Un email a été envoyé. Ouvrez le lien pour définir un nouveau mot de passe.');
+      () => this.$t('forgot.emailSent'));
   },
 });
