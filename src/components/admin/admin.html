@@ -1,145 +1,294 @@
 <div class="admin">
   <p class="banner" role="alert" x-cloak x-show="$store.admin.error" x-text="$store.admin.error"></p>
 
-  <div class="admin-toolbar">
-    <template x-if="!editing">
-      <button class="primary" type="button" id="admin-edit" @click="startEdit()" x-text="'✏️ ' + $t('common.edit')"></button>
-    </template>
-    <template x-if="editing">
-      <div class="inline">
-        <button class="primary" type="button" id="admin-save" :disabled="saving" @click="save()" x-text="saving ? $t('common.saving') : $t('common.save')"></button>
-        <button type="button" id="admin-cancel" :disabled="saving" @click="cancel()" x-text="$t('common.cancel')"></button>
-      </div>
-    </template>
+  <div class="admin-head">
+    <div>
+      <h2 x-text="$t('nav.admin')"></h2>
+      <p class="hint" x-text="$t('admin.subtitle')"></p>
+    </div>
+    <span class="spacer"></span>
+    <button class="primary" type="button" id="admin-add-user" @click="openAddUser()" x-text="$t('admin.addUserButton')"></button>
   </div>
   <div class="form-error" role="alert" x-cloak x-show="formError" x-text="formError"></div>
 
-  <section class="card">
-    <h2 x-text="$t('admin.users')"></h2>
-
-    <template x-if="!editing">
-      <ul class="admin-list" id="admin-users">
-        <template x-for="u in $store.admin.users" :key="u.id">
-          <li class="admin-row">
-            <div class="admin-head">
-              <b x-text="u.name || u.email"></b>
-              <span class="muted" x-show="u.name" x-text="u.email"></span>
-              <span class="chip" x-show="u.is_admin" x-text="$t('role.admin')"></span>
-            </div>
-            <div class="chips">
-              <span class="muted" x-text="$t('admin.memberLabel')"></span>
-              <span class="chip" x-show="memberOf(u.id)" x-text="memberOf(u.id)"></span>
-              <span class="muted" x-show="!memberOf(u.id)" x-text="$t('common.none')"></span>
-            </div>
-            <div class="chips" x-show="!u.is_admin">
-              <template x-for="ev in $store.admin.eventsOf(u.id)" :key="ev.id"><span class="chip" x-text="ev.name"></span></template>
-              <span class="muted" x-show="!$store.admin.eventsOf(u.id).length" x-text="$t('admin.noEvents')"></span>
-            </div>
-            <span class="muted" x-show="u.is_admin" x-text="$t('admin.allEventsAccess')"></span>
-          </li>
-        </template>
-        <li class="muted" x-show="!$store.admin.users.length" x-text="$t('common.none')"></li>
-      </ul>
-    </template>
-
-    <template x-if="editing">
-      <div>
-        <ul class="admin-list" id="admin-users-edit">
-          <template x-for="u in draftUsers" :key="u.id">
-            <li class="admin-row">
-              <div class="admin-head">
-                <b x-text="u.email"></b>
-                <span class="chip" x-show="u.isNew" x-text="$t('admin.newBadge')"></span>
-                <label class="check">
-                  <input type="checkbox" class="admin-flag" x-model="u.is_admin" :disabled="u.id === $store.auth.user?.id">
-                  <span x-text="$t('role.admin')"></span>
-                </label>
-                <button class="icon-btn" type="button" x-show="u.isNew" :aria-label="$t('admin.removeUser', { email: u.email })" @click="removeNewUser(u)">✕</button>
-              </div>
-              <div class="inline">
-                <input class="admin-name" :placeholder="$t('admin.displayName')" x-model="u.name" :aria-label="$t('admin.nameOf', { email: u.email })">
-                <select class="admin-member" x-model="u.member" :aria-label="$t('admin.memberOf', { email: u.email })">
-                  <option value="" x-text="$t('admin.noLinkedMember')"></option>
-                  <template x-for="m in memberOptions(u)" :key="m"><option :value="m" :selected="m === u.member" x-text="m"></option></template>
-                </select>
-              </div>
-              <div class="chips" x-show="!u.is_admin">
-                <template x-for="ev in draft.events" :key="ev.id">
-                  <label class="check chip">
-                    <input type="checkbox" class="admin-access" :checked="has(u.id, ev.id)" @change="toggle(u.id, ev.id)">
-                    <span x-text="ev.name || '…'"></span>
-                  </label>
-                </template>
-                <span class="muted" x-show="!draft.events.length" x-text="$t('admin.noEvents')"></span>
-              </div>
-              <span class="muted" x-show="u.is_admin" x-text="$t('admin.allEventsAccess')"></span>
-            </li>
-          </template>
-        </ul>
-
-        <form class="admin-add" id="admin-user-form" @submit.prevent="addUser()">
-          <h3 x-text="$t('admin.addUser')"></h3>
-          <div class="inline">
-            <input type="email" name="user-email" :placeholder="$t('common.email')" x-model="newUser.email" required>
-            <input type="password" name="user-password" :placeholder="$t('common.password')" autocomplete="new-password" x-model="newUser.password" required>
-          </div>
-          <div class="inline">
-            <input name="user-name" :placeholder="$t('admin.displayNameOptional')" x-model="newUser.name">
-            <select name="user-member" x-model="newUser.member">
-              <option value="" x-text="$t('admin.noLinkedMember')"></option>
-              <template x-for="m in memberOptions(null)" :key="m"><option :value="m" x-text="m"></option></template>
-            </select>
-            <button type="submit" x-text="$t('common.plusAdd')"></button>
-          </div>
-          <p class="hint" x-text="$t('admin.memberReplaceHint')"></p>
-        </form>
-      </div>
-    </template>
+  <section class="admin-stats" aria-label="Summary">
+    <div class="admin-stat">
+      <span class="label" x-text="$t('admin.statUsers')"></span>
+      <b x-text="stats.users"></b>
+      <span class="hint" x-text="$t('admin.statUsersSub', { count: stats.admins })"></span>
+    </div>
+    <div class="admin-stat">
+      <span class="label" x-text="$t('admin.statEvents')"></span>
+      <b x-text="stats.events"></b>
+      <span class="hint" x-text="$t('admin.statEventsSub', { expenses: stats.expenses, total: $fmt.eur(stats.total) })"></span>
+    </div>
+    <div class="admin-stat">
+      <span class="label" x-text="$t('admin.statGrants')"></span>
+      <b x-text="stats.grants"></b>
+      <span class="hint" x-text="$t('admin.statGrantsSub')"></span>
+    </div>
+    <div class="admin-stat" :class="{ warn: stats.unlinked }">
+      <span class="label" x-text="$t('admin.statAttention')"></span>
+      <b x-text="stats.unlinked"></b>
+      <span class="hint" x-text="$t('admin.statAttentionSub')"></span>
+    </div>
   </section>
 
   <section class="card">
-    <h2 x-text="$t('admin.events')"></h2>
+    <div class="admin-card-head">
+      <h2 x-text="$t('admin.users')"></h2>
+      <span class="hint" x-text="$t('admin.usersHint')"></span>
+      <span class="spacer"></span>
+      <input type="search" id="admin-user-search" x-model="userQuery" @input="userPage = 0"
+             :placeholder="$t('admin.searchUsers')" :aria-label="$t('admin.searchUsers')">
+    </div>
 
-    <template x-if="!editing">
-      <ul class="admin-list" id="admin-events">
-        <template x-for="ev in $store.admin.events" :key="ev.id">
-          <li class="admin-row">
-            <div class="admin-head">
-              <b x-text="ev.name"></b>
-              <span class="muted" x-text="$fmt.fmtDate(ev.date) || $t('common.noDate')"></span>
-              <span class="muted" x-text="$t('common.expenseCount', { count: ev.expenseCount })"></span>
-            </div>
-            <div class="chips">
-              <template x-for="u in usersOfEvent(ev.id)" :key="u.id"><span class="chip" x-text="u.name || u.email"></span></template>
-              <span class="muted" x-show="!usersOfEvent(ev.id).length" x-text="$t('common.noPeople')"></span>
-            </div>
-          </li>
-        </template>
-        <li class="muted" x-show="!$store.admin.events.length" x-text="$t('collections.noEvents')"></li>
-      </ul>
-    </template>
-
-    <template x-if="editing">
-      <div>
-        <ul class="admin-list" id="admin-events-edit">
-          <template x-for="ev in draft.events" :key="ev.id">
-            <li class="admin-row">
-              <div class="inline">
-                <input class="admin-event-name" x-model="ev.name" :aria-label="$t('admin.eventName')" required>
-                <input type="date" x-model="ev.date" :aria-label="$t('common.date')">
-                <span class="muted" x-text="$t('common.expenseCount', { count: ev.expenseCount })"></span>
-                <button class="icon-btn" type="button" :aria-label="$t('common.deleteItem', { name: ev.name })" @click="removeEvent(ev)">🗑️</button>
-              </div>
-            </li>
+    <div class="table-wrap">
+      <table id="admin-users">
+        <thead>
+          <tr>
+            <th :aria-sort="sortAria('user')">
+              <button class="sort" type="button" @click="sortBy('user')">
+                <span x-text="$t('admin.col.user')"></span>
+                <span class="arrow" :class="{ on: sort.key === 'user' }" x-text="sortArrow('user')"></span>
+              </button>
+            </th>
+            <th :aria-sort="sortAria('member')">
+              <button class="sort" type="button" @click="sortBy('member')">
+                <span x-text="$t('admin.col.linkedMember')"></span>
+                <span class="arrow" :class="{ on: sort.key === 'member' }" x-text="sortArrow('member')"></span>
+              </button>
+            </th>
+            <th x-text="$t('admin.col.access')"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <template x-for="u in usersView.rows" :key="u.id">
+            <tr>
+              <td>
+                <div class="who">
+                  <span class="avatar sm" :style="avatarStyle(u)" x-text="initials(u)"></span>
+                  <div>
+                    <button class="name" type="button" @click="openDrawer(u.id)" x-text="u.name || u.email"></button>
+                    <span class="badge role" x-show="u.is_admin" x-text="$t('role.admin')"></span>
+                    <span class="badge" x-show="u.isNew" x-text="$t('admin.newBadge')"></span>
+                    <small x-text="u.email"></small>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="chip" x-show="u.member" x-text="u.member"></span>
+                <span class="muted" x-show="!u.member && u.is_admin">—</span>
+                <span class="badge warn" x-show="!u.member && !u.is_admin" x-text="'⚠ ' + $t('admin.notLinked')"></span>
+              </td>
+              <td class="tags-cell">
+                <span class="all" x-show="u.is_admin" x-text="'✓ ' + $t('admin.allEventsAccess')"></span>
+                <div class="tag-list" x-show="!u.is_admin">
+                  <template x-for="ev in tagsOf(u)" :key="ev.id">
+                    <button type="button" class="tag" :class="{ dirty: isChanged(u.id, ev.id) }"
+                            :aria-pressed="String(has(u.id, ev.id))" @click="toggle(u.id, ev.id)" x-text="ev.name"></button>
+                  </template>
+                  <button type="button" class="tag add" @click.stop="openPicker($event, u.id)" x-text="$t('admin.addEvent')"></button>
+                </div>
+              </td>
+            </tr>
           </template>
-          <li class="muted" x-show="!draft.events.length" x-text="$t('collections.noEvents')"></li>
-        </ul>
-        <form class="inline admin-add" id="admin-event-form" @submit.prevent="addEvent()">
-          <input name="event-name" :placeholder="$t('admin.eventName')" x-model="newEvent.name">
-          <input type="date" name="event-date" x-model="newEvent.date">
-          <button type="submit" x-text="$t('common.plusAdd')"></button>
-        </form>
+          <tr x-show="!usersView.total">
+            <td colspan="3" class="muted" x-text="$t('admin.noResults')"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="admin-pager">
+      <span class="hint" x-text="usersView.total ? $t('admin.showing', { from: usersView.from, to: usersView.to, total: usersView.total }) : ''"></span>
+      <span class="spacer"></span>
+      <button class="ghost" type="button" :disabled="usersView.page === 0" @click="userPage = usersView.page - 1" x-text="'‹ ' + $t('admin.previous')"></button>
+      <button class="ghost" type="button" :disabled="usersView.page >= usersView.pages - 1" @click="userPage = usersView.page + 1" x-text="$t('admin.next') + ' ›'"></button>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="admin-card-head">
+      <h2 x-text="$t('admin.events')"></h2>
+      <span class="hint" x-text="$t('admin.eventsHint')"></span>
+      <span class="spacer"></span>
+      <input type="search" id="admin-event-search" x-model="eventQuery" @input="eventPage = 0"
+             :placeholder="$t('admin.searchEvents')" :aria-label="$t('admin.searchEvents')">
+      <button class="primary" type="button" id="admin-add-event" @click="openNewEvent()" x-text="$t('admin.newEventButton')"></button>
+    </div>
+
+    <div class="table-wrap">
+      <table id="admin-events">
+        <thead>
+          <tr>
+            <th x-text="$t('admin.col.event')"></th>
+            <th x-text="$t('admin.col.date')"></th>
+            <th class="num" x-text="$t('admin.col.expenses')"></th>
+            <th class="num" x-text="$t('admin.col.total')"></th>
+            <th x-text="$t('admin.col.people')"></th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <template x-for="ev in eventsView.rows" :key="ev.id">
+            <tr>
+              <td>
+                <b x-text="ev.name"></b>
+                <span class="badge" x-show="ev.isNew" x-text="$t('admin.newBadge')"></span>
+              </td>
+              <td class="muted" x-text="$fmt.fmtDate(ev.date) || $t('common.noDate')"></td>
+              <td class="num" x-text="ev.expenseCount"></td>
+              <td class="num" x-text="$fmt.eur(totalOf(ev))"></td>
+              <td>
+                <span class="admin-people" :title="$t('admin.peopleWithAccess', { count: peopleOf(ev).count })">
+                  <span class="admin-stack">
+                    <template x-for="p in peopleOf(ev).shown" :key="p.id">
+                      <span class="avatar xs" :style="avatarStyle(p)" x-text="initials(p)"></span>
+                    </template>
+                  </span>
+                  <span x-text="'+' + peopleOf(ev).count"></span>
+                </span>
+              </td>
+              <td class="act">
+                <button class="icon" type="button" :aria-label="$t('common.editItem', { name: ev.name })" @click="openEditEvent(ev)">✏️</button>
+                <button class="icon" type="button" :aria-label="$t('common.deleteItem', { name: ev.name })" @click="removeEvent(ev)">🗑️</button>
+              </td>
+            </tr>
+          </template>
+          <tr x-show="!eventsView.total">
+            <td colspan="6" class="muted" x-text="$t('admin.noResults')"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="admin-pager">
+      <span class="hint" x-text="eventsView.total ? $t('admin.showing', { from: eventsView.from, to: eventsView.to, total: eventsView.total }) : ''"></span>
+      <span class="spacer"></span>
+      <button class="ghost" type="button" :disabled="eventsView.page === 0" @click="eventPage = eventsView.page - 1" x-text="'‹ ' + $t('admin.previous')"></button>
+      <button class="ghost" type="button" :disabled="eventsView.page >= eventsView.pages - 1" @click="eventPage = eventsView.page + 1" x-text="$t('admin.next') + ' ›'"></button>
+    </div>
+  </section>
+
+  <div class="admin-picker" x-show="picker" x-cloak :style="pickerStyle" role="dialog"
+       @click.outside="closePicker()" @keydown.escape.window="closePicker()">
+    <div class="admin-picker-top">
+      <b x-text="pickerUser ? $t('admin.pickerTitle', { name: pickerUser.name || pickerUser.email }) : ''"></b>
+      <button class="icon" type="button" :aria-label="$t('common.close')" @click="closePicker()">✕</button>
+    </div>
+    <input type="search" x-ref="pickerSearch" x-model="pickerQuery" :placeholder="$t('admin.searchEvents')" :aria-label="$t('admin.searchEvents')">
+    <div class="admin-picker-list">
+      <template x-for="ev in pickerEvents" :key="ev.id">
+        <button type="button" class="admin-opt" :aria-pressed="String(!!pickerUser && has(pickerUser.id, ev.id))"
+                @click="pickerUser && toggle(pickerUser.id, ev.id)">
+          <span class="admin-opt-name" x-text="ev.name"></span>
+          <span class="hint" x-text="$fmt.fmtDate(ev.date)"></span>
+          <span class="admin-mark" x-text="pickerUser && has(pickerUser.id, ev.id) ? '✓' : '+'"></span>
+        </button>
+      </template>
+      <p class="hint" x-show="!pickerEvents.length" x-text="$t('admin.noEventMatch')"></p>
+    </div>
+  </div>
+
+  <div class="admin-savebar" x-show="dirtyCount > 0" x-cloak role="region" :aria-label="$t('admin.unsaved', { count: dirtyCount })">
+    <span class="dot" aria-hidden="true"></span>
+    <span x-text="$t('admin.unsaved', { count: dirtyCount })"></span>
+    <span class="spacer"></span>
+    <button class="ghost" type="button" :disabled="saving" @click="discard()" x-text="$t('admin.discard')"></button>
+    <button class="primary" type="button" id="admin-save" :disabled="saving" @click="save()"
+            x-text="saving ? $t('common.saving') : $t('admin.saveChanges')"></button>
+  </div>
+
+  <div class="admin-scrim" x-show="drawerUser" x-cloak @click="closeDrawer()"></div>
+  <aside class="admin-drawer" :class="{ open: drawerUser }" :aria-label="$t('admin.editUser')">
+    <template x-if="drawerUser">
+      <div class="admin-drawer-body">
+        <div class="admin-drawer-head">
+          <span class="avatar lg" :style="avatarStyle(drawerUser)" x-text="initials(drawerUser)"></span>
+          <div>
+            <b x-text="drawerUser.name || drawerUser.email"></b>
+            <span class="hint" x-text="drawerUser.email"></span>
+          </div>
+          <button class="icon" type="button" :aria-label="$t('common.close')" @click="closeDrawer()">✕</button>
+        </div>
+
+        <label class="admin-field">
+          <span x-text="$t('admin.displayName')"></span>
+          <input x-model="drawerUser.name" :placeholder="drawerUser.email">
+        </label>
+
+        <div class="admin-field">
+          <span x-text="$t('admin.role')"></span>
+          <div class="admin-seg" role="group" :aria-label="$t('admin.role')">
+            <button type="button" :aria-pressed="String(!drawerUser.is_admin)" :disabled="drawerUser.id === $store.auth.user?.id"
+                    @click="drawerUser.is_admin = false" x-text="$t('role.member')"></button>
+            <button type="button" :aria-pressed="String(drawerUser.is_admin)" :disabled="drawerUser.id === $store.auth.user?.id"
+                    @click="drawerUser.is_admin = true" x-text="$t('role.admin')"></button>
+          </div>
+        </div>
+
+        <label class="admin-field">
+          <span x-text="$t('admin.col.linkedMember')"></span>
+          <select x-model="drawerUser.member">
+            <option value="" x-text="$t('admin.noLinkedMember')"></option>
+            <template x-for="m in memberOptions(drawerUser)" :key="m">
+              <option :value="m" :selected="m === drawerUser.member" x-text="m"></option>
+            </template>
+          </select>
+        </label>
+
+        <p class="note" x-text="$t('admin.accessNote')"></p>
+
+        <div class="admin-drawer-foot" x-show="drawerUser.isNew">
+          <button class="danger" type="button" @click="removeNewUser(drawerUser)" x-text="$t('admin.removeNew')"></button>
+        </div>
       </div>
     </template>
-  </section>
+  </aside>
+
+  <dialog x-ref="dlg" id="admin-dlg">
+    <template x-if="dialogKind === 'user'">
+      <form @submit.prevent="addUser()">
+        <h2 x-text="$t('admin.addUser')"></h2>
+        <label><span x-text="$t('common.email')"></span>
+          <input type="email" name="user-email" required x-model="newUser.email">
+        </label>
+        <label><span x-text="$t('common.password')"></span>
+          <input type="password" name="user-password" autocomplete="new-password" required x-model="newUser.password">
+        </label>
+        <label><span x-text="$t('admin.displayNameOptional')"></span>
+          <input name="user-name" x-model="newUser.name">
+        </label>
+        <label><span x-text="$t('admin.col.linkedMember')"></span>
+          <select name="user-member" x-model="newUser.member">
+            <option value="" x-text="$t('admin.noLinkedMember')"></option>
+            <template x-for="m in memberOptions(null)" :key="m">
+              <option :value="m" :selected="m === newUser.member" x-text="m"></option>
+            </template>
+          </select>
+        </label>
+        <p class="hint" x-text="$t('admin.memberReplaceHint')"></p>
+        <div class="form-error" role="alert" x-show="error" x-text="error"></div>
+        <menu>
+          <button type="button" @click="closeDialog()" x-text="$t('common.cancel')"></button>
+          <button class="primary" type="submit" x-text="$t('common.plusAdd')"></button>
+        </menu>
+      </form>
+    </template>
+    <template x-if="dialogKind === 'event'">
+      <form @submit.prevent="saveEvent()">
+        <h2 x-text="eventForm.isNew ? $t('admin.newEventTitle') : $t('admin.editEvent')"></h2>
+        <label><span x-text="$t('admin.eventName')"></span>
+          <input name="event-name" required x-model="eventForm.name">
+        </label>
+        <label><span x-text="$t('common.date')"></span>
+          <input type="date" name="event-date" x-model="eventForm.date">
+        </label>
+        <div class="form-error" role="alert" x-show="error" x-text="error"></div>
+        <menu>
+          <button type="button" @click="closeDialog()" x-text="$t('common.cancel')"></button>
+          <button class="primary" type="submit" x-text="$t('common.save')"></button>
+        </menu>
+      </form>
+    </template>
+  </dialog>
 </div>
