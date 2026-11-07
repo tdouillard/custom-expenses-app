@@ -1,4 +1,4 @@
-﻿const SESSION_KEY = 'expenses.session';
+const SESSION_KEY = 'expenses.session';
 const EXPIRY_SKEW_SECONDS = 60;
 
 const KNOWN_ERRORS = {

@@ -22,12 +22,12 @@
     <main class="dashboard" x-show="$store.admin.view === 'dashboard'">
       <div class="span-8" data-include="src/components/balances/balances.html"></div>
       <div class="span-4" data-include="src/components/settlements/settlements.html" x-data="settlementsCard"></div>
+      <div class="span-12" data-include="src/components/expenses/expenses.html" x-data="expenses"></div>
       <div class="span-8" data-include="src/components/totals/totals.html"></div>
       <div class="span-4 stack">
         <div data-include="src/components/collection-card/collection-card.html" x-data="collectionCard('members')"></div>
         <div data-include="src/components/collection-card/collection-card.html" x-data="collectionCard('events')"></div>
       </div>
-      <div class="span-12" data-include="src/components/expenses/expenses.html" x-data="expenses"></div>
     </main>
 
     <main class="admin-page" x-cloak x-show="$store.admin.isAdmin && $store.admin.view === 'admin'"
@@ -38,6 +38,7 @@
 
     <div data-include="src/components/expense-dialog/expense-dialog.html" x-data="expenseDialog" @open-expense.window="open($event.detail)"></div>
     <div data-include="src/components/settle-dialog/settle-dialog.html" x-data="settleDialog" @open-settle.window="open()"></div>
+    <div data-include="src/components/share-dialog/share-dialog.html" x-data="shareDialog" @open-share.window="open()"></div>
     <div data-include="src/components/import-dialog/import-dialog.html" x-data="importDialog" @open-import.window="open()"></div>
     <div data-include="src/components/manage-dialog/manage-dialog.html" x-data="manageDialog" @open-manage.window="open($event.detail)"></div>
   </div>

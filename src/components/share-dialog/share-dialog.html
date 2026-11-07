@@ -1,0 +1,10 @@
+<dialog x-ref="dlg" id="share-dlg" class="share-dlg">
+  <h2>Partager</h2>
+  <p class="hint">Résumé du tableau de bord, à coller dans Signal, WhatsApp, Discord…</p>
+  <textarea id="share-text" x-ref="text" readonly rows="16" x-model="message" @focus="$el.select()" aria-label="Message à partager"></textarea>
+  <menu>
+    <button type="button" id="share-close" @click="closeDialog()">Fermer</button>
+    <button type="button" id="share-native" x-show="canShare" @click="share()">Partager…</button>
+    <button class="primary" type="button" id="share-copy" @click="copy()" x-text="copied ? '✓ Copié' : '📋 Copier'"></button>
+  </menu>
+</dialog>

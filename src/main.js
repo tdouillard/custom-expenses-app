@@ -15,6 +15,7 @@ import { expenseDialog } from './components/expense-dialog/expense-dialog.js';
 import { expenses } from './components/expenses/expenses.js';
 import { importDialog } from './components/import-dialog/import-dialog.js';
 import { manageDialog } from './components/manage-dialog/manage-dialog.js';
+import { shareDialog } from './components/share-dialog/share-dialog.js';
 import { settleDialog } from './components/settle-dialog/settle-dialog.js';
 import { settlementsCard } from './components/settlements/settlements.js';
 
@@ -29,7 +30,7 @@ document.addEventListener('alpine:init', () => {
   Alpine.store('data', createDataStore(new StateRepository(client)));
   Alpine.store('auth', createAuthStore(client));
   Alpine.store('admin', createAdminStore(new AdminRepository(client)));
-  Object.entries({ accountPage, forgotPasswordPage, adminPage, appShell, collectionCard, expenseDialog, expenses, importDialog, manageDialog, settleDialog, settlementsCard })
+  Object.entries({ accountPage, forgotPasswordPage, adminPage, appShell, collectionCard, expenseDialog, expenses, importDialog, manageDialog, shareDialog, settleDialog, settlementsCard })
     .forEach(([name, factory]) => Alpine.data(name, factory));
 });
 

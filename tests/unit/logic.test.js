@@ -1,9 +1,10 @@
-﻿import test from 'node:test';
+import test from 'node:test';
 import assert from 'node:assert/strict';
 import { splitEqually, computeBalances, suggestTransfers } from '../../src/core/logic.js';
 import { eur, norm, parseList, balanceLabel, signClass } from '../../src/core/format.js';
 import { emptyState, normalizeState, byEventDate } from '../../src/core/state.js';
 import { parseCsv, parseAmount } from '../../src/core/csv.js';
+import { buildShareMessage } from '../../src/core/share.js';
 import { rowStatus, filterExpenses, sumAmounts, nextOrder } from '../../src/core/expenses.js';
 import { linkMember } from '../../src/core/collections.js';
 
@@ -110,4 +111,16 @@ test('rowStatus: orange when order pending, else red when unpaid, else green', (
   assert.equal(rowStatus({ due: true, order: 'na' }), 'row-due');
   assert.equal(rowStatus({ due: false, order: 'sent' }), 'row-paid');
   assert.equal(rowStatus({ due: false, order: 'na' }), 'row-paid');
+});
+
+test('buildShareMessage condenses the dashboard without members/events lists', () => {
+  const s = { members: ['Alice', 'Bob'], memberUsers: {}, settlements: [{ from: 'Bob', to: 'Alice', amount: 10, date: '' }],
+    events: [{ name: 'Trip', date: '2024-05-01', recipients: [] }],
+    expenses: [{ id: '1', event: 'Trip', label: 'Hotel', amount: 100, paidBy: 'Alice', recipient: 'Mamie', due: false, order: 'sent', split: { Alice: 50, Bob: 50 } }] };
+  const m = buildShareMessage(s);
+  assert.match(m, /Balances/);
+  assert.match(m, /Bob → Alice/);
+  assert.match(m, /Trip.*100,00 €/);
+  assert.match(m, /🟢 Hotel — 100,00 € \(Alice 50,00 € · Bob 50,00 €\) — payé par Alice, pour Mamie/);
+  assert.doesNotMatch(m, /[\u202f\u00a0]/);
 });

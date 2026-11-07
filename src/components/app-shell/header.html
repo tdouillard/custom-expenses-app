@@ -7,6 +7,7 @@
   </nav>
 
   <div class="header-actions">
+    <button id="share-btn" @click="$dispatch('open-share')">📤 Partager</button>
     <button class="primary" id="add-expense" @click="$dispatch('open-expense')">+ Ajouter une dépense</button>
 
     <div class="profile" x-data="{ open: false }" @click.outside="open = false" @keydown.escape.window="open = false">

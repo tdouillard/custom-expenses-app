@@ -1,4 +1,4 @@
-﻿td.cell-split { width:1%; white-space:nowrap; }
+td.cell-split { width:1%; white-space:nowrap; }
 .split-list { display:flex; flex-direction:column; align-items:flex-start; gap:.3rem; }
 th.cell-money, td.cell-money { text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums; }
 td.cell-money b { font-size:1rem; }

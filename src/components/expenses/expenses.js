@@ -1,4 +1,4 @@
-﻿import { EXPENSE_COLUMNS } from '../../config/expense-columns.js';
+import { EXPENSE_COLUMNS } from '../../config/expense-columns.js';
 import { ORDER_OPTIONS, PAYMENT_OPTIONS, filterExpenses, orderInfo, participants, paymentInfo, rowStatus, sumAmounts } from '../../core/expenses.js';
 import { eventDate } from '../../core/state.js';
 

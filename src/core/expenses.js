@@ -1,4 +1,4 @@
-﻿import { eventDate } from './state.js';
+import { eventDate } from './state.js';
 
 export const ORDER = {
   na: { label: 'Non nécessaire', cls: 'b-na' },
