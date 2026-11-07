@@ -1,51 +1,182 @@
 <div class="account">
-  <section class="card">
-    <h2 x-text="$t('account.profile')"></h2>
-    <div class="account-id">
-      <span class="avatar avatar-lg" x-text="$store.auth.initials"></span>
-      <div>
-        <b x-text="$store.auth.displayName"></b>
-        <span class="muted" x-text="$store.auth.user?.email"></span>
-        <span class="muted" x-text="$store.admin.isAdmin ? $t('role.admin') : $t('role.member')"></span>
+  <div class="page-head">
+    <h2 x-text="$t('account.title')"></h2>
+    <p class="muted" x-text="$t('account.subtitle')"></p>
+  </div>
+
+  <p class="ok feedback" role="status" x-show="profile.ok" x-text="profile.ok"></p>
+  <p class="form-error feedback" role="alert" x-show="profile.error" x-text="profile.error"></p>
+
+  <div class="layout">
+    <nav class="side" :aria-label="$t('account.sectionsLabel')">
+      <div class="me">
+        <span class="avatar" style="background:var(--grad)" x-text="$store.auth.initials"></span>
+        <div>
+          <b x-text="$store.auth.displayName"></b>
+          <span class="muted" x-text="$store.admin.isAdmin ? $t('role.admin') : $t('role.member')"></span>
+        </div>
       </div>
+      <button type="button" :aria-current="section === 'profile' ? 'true' : null" @click="goTo('profile')" x-text="$t('account.navProfile')"></button>
+      <button type="button" :aria-current="section === 'security' ? 'true' : null" @click="goTo('security')" x-text="$t('account.navSecurity')"></button>
+      <button type="button" :aria-current="section === 'preferences' ? 'true' : null" @click="goTo('preferences')" x-text="$t('account.navPreferences')"></button>
+      <button type="button" class="danger-link" :aria-current="section === 'danger' ? 'true' : null" @click="goTo('danger')" x-text="$t('account.navDanger')"></button>
+    </nav>
+
+    <div class="panels">
+      <section class="panel" id="account-profile">
+        <div class="panel-head">
+          <h3 x-text="$t('account.profileTitle')"></h3>
+          <p class="muted" x-text="$t('account.profileHint')"></p>
+        </div>
+
+        <div class="setting">
+          <div>
+            <b x-text="$t('account.photo')"></b>
+            <p x-text="$t('account.photoHint')"></p>
+          </div>
+          <div class="control">
+            <div class="identity">
+              <span class="avatar xl" x-show="!photoUrl" style="background:var(--grad)" x-text="$store.auth.initials"></span>
+              <img class="avatar xl photo" x-cloak x-show="photoUrl" :src="photoUrl" alt="" referrerpolicy="no-referrer">
+              <div>
+                <span class="muted" x-text="$t('account.photoSpec')"></span>
+                <div class="btns">
+                  <button type="button" :disabled="photo.busy" @click="$refs.photoInput.click()" x-text="$t('account.photoUpload')"></button>
+                  <button type="button" class="ghost" x-show="photoUrl" :disabled="photo.busy" @click="removePhoto()" x-text="$t('account.photoRemove')"></button>
+                </div>
+                <input type="file" x-ref="photoInput" hidden accept="image/jpeg,image/png,image/webp" @change="uploadPhoto($event)">
+              </div>
+            </div>
+            <p class="ok" role="status" x-show="photo.ok" x-text="photo.ok"></p>
+            <p class="form-error" role="alert" x-show="photo.error" x-text="photo.error"></p>
+          </div>
+        </div>
+
+        <div class="setting" :class="{ dirty: username.trim() !== ($store.auth.meta.username || '') }">
+          <div>
+            <b x-text="$t('account.username')"></b>
+            <p x-text="$t('account.usernameHint')"></p>
+          </div>
+          <div class="control">
+            <input type="text" name="username" maxlength="40" autocomplete="nickname" x-model="username" :aria-label="$t('account.username')">
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" id="account-security">
+        <div class="panel-head">
+          <h3 x-text="$t('account.securityTitle')"></h3>
+          <p class="muted" x-text="$t('account.securityHint')"></p>
+        </div>
+
+        <div class="setting">
+          <div>
+            <b x-text="$t('account.email')"></b>
+            <p x-text="$t('account.currentEmail', { email: $store.auth.user?.email })"></p>
+          </div>
+          <div class="control">
+            <div class="notice" x-show="$store.auth.user?.new_email"
+                 x-text="$t('account.pendingEmail', { email: $store.auth.user?.new_email })"></div>
+            <form class="stack-form" id="account-email-form" @submit.prevent="codeSent ? changeEmail() : sendCode()">
+              <label><span x-text="$t('account.newEmail')"></span>
+                <input type="email" name="new-email" autocomplete="email" x-model="email" :readonly="codeSent" required>
+              </label>
+              <label x-show="codeSent" x-cloak><span x-text="$t('account.code')"></span>
+                <input type="text" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="10" x-model="code">
+              </label>
+              <p class="hint" x-show="codeSent" x-text="$t('account.codeHint', { email: $store.auth.user?.email })"></p>
+              <p class="ok" role="status" x-show="emailState.ok" x-text="emailState.ok"></p>
+              <p class="form-error" role="alert" x-show="emailState.error" x-text="emailState.error"></p>
+              <div class="control-row">
+                <button class="primary" type="submit" :disabled="emailState.busy" x-text="codeSent ? $t('account.changeEmail') : $t('account.sendCode')"></button>
+                <button type="button" class="ghost" x-show="codeSent" x-cloak @click="cancelEmail()" x-text="$t('common.cancel')"></button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div class="setting">
+          <div>
+            <b x-text="$t('account.password')"></b>
+            <p x-text="$t('account.passwordHint')"></p>
+          </div>
+          <div class="control">
+            <div class="control-row">
+              <span class="muted" x-text="$store.auth.user?.email"></span>
+              <span class="spacer"></span>
+              <button type="button" :disabled="passwordState.busy" @click="forgotPassword()" x-text="$t('account.sendReset')"></button>
+            </div>
+            <p class="ok" role="status" x-show="passwordState.ok" x-text="passwordState.ok"></p>
+            <p class="form-error" role="alert" x-show="passwordState.error" x-text="passwordState.error"></p>
+          </div>
+        </div>
+
+        <div class="setting">
+          <div>
+            <b x-text="$t('account.sessionsTitle')"></b>
+            <p x-text="$t('account.sessionsHint')"></p>
+          </div>
+          <div class="control">
+            <div class="control-row">
+              <span class="spacer"></span>
+              <button type="button" :disabled="sessionsState.busy" @click="signOutOthers()" x-text="$t('account.signOutOthers')"></button>
+            </div>
+            <p class="ok" role="status" x-show="sessionsState.ok" x-text="sessionsState.ok"></p>
+            <p class="form-error" role="alert" x-show="sessionsState.error" x-text="sessionsState.error"></p>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" id="account-preferences">
+        <div class="panel-head">
+          <h3 x-text="$t('account.preferencesTitle')"></h3>
+          <p class="muted" x-text="$t('account.preferencesHint')"></p>
+        </div>
+
+        <div class="setting" :class="{ dirty: language !== savedLanguage }">
+          <div>
+            <b x-text="$t('account.language')"></b>
+            <p x-text="$t('account.languageHint')"></p>
+          </div>
+          <div class="control">
+            <div class="seg" role="group" :aria-label="$t('account.language')">
+              <template x-for="l in $store.i18n.languages" :key="l.code">
+                <button type="button" :aria-pressed="(language === l.code).toString()" @click="language = l.code" x-text="l.label"></button>
+              </template>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel danger" id="account-danger">
+        <div class="panel-head">
+          <h3 x-text="$t('account.dangerTitle')"></h3>
+        </div>
+        <div class="setting">
+          <div>
+            <b x-text="$t('account.deleteTitle')"></b>
+            <p x-text="$t('account.deleteHint')"></p>
+          </div>
+          <form class="control" @submit.prevent="deleteAccount()">
+            <label><span x-text="$t('account.deleteConfirmLabel', { email: $store.auth.user?.email })"></span>
+              <input type="email" name="delete-confirm" autocomplete="off" x-model="deleteEmail" :aria-label="$t('account.deleteConfirmLabel', { email: $store.auth.user?.email })">
+            </label>
+            <div class="control-row">
+              <span class="spacer"></span>
+              <button class="danger" type="submit" :disabled="!canDelete || deleteState.busy" x-text="$t('account.deleteButton')"></button>
+            </div>
+            <p class="form-error" role="alert" x-show="deleteState.error" x-text="deleteState.error"></p>
+          </form>
+        </div>
+      </section>
     </div>
-    <form class="stack-form" id="account-profile-form" @submit.prevent="saveProfile()">
-      <label><span x-text="$t('account.username')"></span>
-        <input name="username" autocomplete="nickname" maxlength="40" x-model="username">
-      </label>
-      <label><span x-text="$t('account.language')"></span>
-        <select name="language" x-model="language">
-          <template x-for="l in $store.i18n.languages" :key="l.code">
-            <option :value="l.code" x-text="l.label"></option>
-          </template>
-        </select>
-      </label>
-      <p class="ok" role="status" x-show="profile.ok" x-text="profile.ok"></p>
-      <p class="form-error" role="alert" x-show="profile.error" x-text="profile.error"></p>
-      <button class="primary" type="submit" :disabled="profile.busy" x-text="$t('common.save')"></button>
-    </form>
-  </section>
+  </div>
 
-  <section class="card">
-    <h2 x-text="$t('account.email')"></h2>
-    <p class="hint" x-text="$t('account.currentEmail', { email: $store.auth.user?.email })"></p>
-    <p class="notice" x-show="$store.auth.user?.new_email"
-       x-text="$t('account.pendingEmail', { email: $store.auth.user?.new_email })"></p>
-    <form class="stack-form" id="account-email-form" @submit.prevent="changeEmail()">
-      <label><span x-text="$t('account.newEmail')"></span>
-        <input type="email" name="new-email" autocomplete="email" required x-model="email">
-      </label>
-      <p class="ok" role="status" x-show="emailState.ok" x-text="emailState.ok"></p>
-      <p class="form-error" role="alert" x-show="emailState.error" x-text="emailState.error"></p>
-      <button class="primary" type="submit" :disabled="emailState.busy" x-text="$t('account.changeEmail')"></button>
-    </form>
-  </section>
-
-  <section class="card">
-    <h2 x-text="$t('account.password')"></h2>
-    <p class="hint" x-text="$t('account.passwordHint')"></p>
-    <p class="ok" role="status" x-show="passwordState.ok" x-text="passwordState.ok"></p>
-    <p class="form-error" role="alert" x-show="passwordState.error" x-text="passwordState.error"></p>
-    <button type="button" id="forgot-password-btn" @click="forgotPassword()" :disabled="passwordState.busy" x-text="$t('auth.forgotPassword')"></button>
-  </section>
+  <div class="savebar" x-cloak x-show="pending > 0" role="region" :aria-label="$t('account.unsavedLabel')">
+    <span class="dot" aria-hidden="true"></span>
+    <span><b x-text="pending"></b> <span x-text="$t('account.unsaved', { count: pending })"></span></span>
+    <span class="spacer"></span>
+    <button type="button" class="ghost" @click="discard()" x-text="$t('account.discard')"></button>
+    <button type="button" class="primary" :disabled="profile.busy" @click="saveProfile()" x-text="$t('account.saveChanges')"></button>
+  </div>
 </div>

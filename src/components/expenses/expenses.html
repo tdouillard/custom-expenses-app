@@ -75,7 +75,7 @@
               <template x-for="e in g.rows" :key="e.id">
                 <tr :class="rowStatus(e)">
                   <template x-for="col in columns" :key="col.key">
-                    <td :class="'cell-' + col.cell">
+                    <td :class="'cell-' + col.cell" :data-label="$t(col.label)">
                       <template x-if="col.cell === 'label'">
                         <div>
                           <b x-text="e.label"></b>

@@ -1,3 +1,5 @@
+import { avatarPath } from '../core/avatar.js';
+
 /* Authentication state shared by every component. `client` is a SupabaseClient. */
 export function createAuthStore(client, { location = globalThis.location, history = globalThis.history } = {}) {
   return {
@@ -44,12 +46,35 @@ export function createAuthStore(client, { location = globalThis.location, histor
     async saveProfile({ username, language }) {
       this.user = await client.updateUser({ data: { username: username.trim(), language } });
     },
-    async changeEmail(email) {
-      this.user = await client.updateUser({ email: email.trim() }, { redirectTo: location?.origin + location?.pathname });
+    /* Emails a one-time code to the current address; the code must be given back to changeEmail. */
+    async requestEmailCode() { await client.reauthenticate(); },
+    async changeEmail(email, code) {
+      this.user = await client.updateUser({ email: email.trim(), nonce: code }, { redirectTo: location?.origin + location?.pathname });
     },
+    async signOutOthers() { await client.signOutOthers(); },
     async sendPasswordCode() { await client.reauthenticate(); },
     async changePassword(password, nonce) {
       this.user = await client.updateUser(nonce ? { password, nonce } : { password });
+    },
+
+    async uploadAvatar(blob) {
+      await client.uploadObject('avatars', avatarPath(this.user.id), blob);
+    },
+    async removeAvatar() {
+      await client.removeObject('avatars', avatarPath(this.user.id));
+    },
+    /* Short-lived link to the photo, or '' when there is none. */
+    async avatarUrl() {
+      if (!this.user) return '';
+      try { return await client.signedUrl('avatars', avatarPath(this.user.id), 3600); } catch { return ''; }
+    },
+
+    /* Removes the photo, then the account itself (server-side checks in delete_my_account). */
+    async deleteAccount() {
+      await client.removeObject('avatars', avatarPath(this.user.id));
+      await client.rest('/rpc/delete_my_account', { method: 'POST', body: {} });
+      client.forgetSession();
+      this.user = null;
     },
 
     async resetPassword(email) {

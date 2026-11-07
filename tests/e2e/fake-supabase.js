@@ -55,10 +55,11 @@ export async function fakeSupabase(page, { admin = false } = {}) {
       if (table === 'profiles') return json(200, [{ ...user, is_admin: admin }]);
       return json(200, t[table] || []);
     }
+    if (table === 'user_directory') return json(200, [{ id: user.id, name: '', email: user.email }]);
     db.saves += 1;
     if (req.method() === 'POST') {
       const key = table === 'members' ? 'name' : 'id';
-      for (const row of req.postDataJSON()) {
+      for (const row of [req.postDataJSON()].flat()) {
         const i = t[table].findIndex((r) => r[key] === row[key]);
         if (i >= 0) t[table][i] = row; else t[table].push(row);
       }
@@ -68,6 +69,10 @@ export async function fakeSupabase(page, { admin = false } = {}) {
       t[table] = t[table].filter((r) => !values.includes(r[column]));
     }
     return route.fulfill({ status: 204, body: '' });
+  });
+  await page.route('**/storage/v1/**', (route) => {
+    const removed = route.request().method() === 'DELETE';
+    return route.fulfill({ status: removed ? 200 : 400, contentType: 'application/json', body: JSON.stringify(removed ? [] : { message: 'Object not found' }) });
   });
   return db;
 }

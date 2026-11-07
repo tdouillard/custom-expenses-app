@@ -103,4 +103,54 @@ test('repository loads shared rows and saves only what changed', async () => {
   assert.equal(calls[0].opts.method, 'DELETE');
 });
 
+test('signOutOthers ends the other sessions with the current token', async () => {
+  const { c, calls } = client(() => json(204, null));
+  c.session = { access_token: 't', refresh_token: 'r', expires_at: 9e9, user: {} };
+  await c.signOutOthers();
+  assert.equal(calls[0].url, 'https://x.supabase.co/auth/v1/logout?scope=others');
+  assert.equal(calls[0].opts.method, 'POST');
+  assert.equal(calls[0].opts.headers.Authorization, 'Bearer t');
+  assert.equal(c.session.access_token, 't');
+});
+
+test('photo upload sends the blob with its type and replaces an existing file', async () => {
+  const { c, calls } = client(() => json(200, { Key: 'avatars/u1/avatar.jpg' }));
+  c.session = { access_token: 't', refresh_token: 'r', expires_at: 9e9, user: {} };
+  await c.uploadObject('avatars', 'u1/avatar.jpg', new Blob(['x'], { type: 'image/jpeg' }));
+  assert.equal(calls[0].url, 'https://x.supabase.co/storage/v1/object/avatars/u1/avatar.jpg');
+  assert.equal(calls[0].opts.method, 'POST');
+  assert.equal(calls[0].opts.headers['Content-Type'], 'image/jpeg');
+  assert.equal(calls[0].opts.headers['x-upsert'], 'true');
+  assert.ok(calls[0].opts.body instanceof Blob);
+});
+
+test('signed photo links are short-lived and absolute', async () => {
+  const { c, calls } = client(() => json(200, { signedURL: '/object/sign/avatars/u1/avatar.jpg?token=abc' }));
+  c.session = { access_token: 't', refresh_token: 'r', expires_at: 9e9, user: {} };
+  const url = await c.signedUrl('avatars', 'u1/avatar.jpg', 3600);
+  assert.equal(url, 'https://x.supabase.co/storage/v1/object/sign/avatars/u1/avatar.jpg?token=abc');
+  assert.deepEqual(JSON.parse(calls[0].opts.body), { expiresIn: 3600 });
+});
+
+test('photo removal deletes the given path', async () => {
+  const { c, calls } = client(() => json(200, []));
+  c.session = { access_token: 't', refresh_token: 'r', expires_at: 9e9, user: {} };
+  await c.removeObject('avatars', 'u1/avatar.jpg');
+  assert.equal(calls[0].opts.method, 'DELETE');
+  assert.deepEqual(JSON.parse(calls[0].opts.body), { prefixes: ['u1/avatar.jpg'] });
+});
+
+test('server guard errors raised by the database get readable messages', async () => {
+  const { c } = client(() => json(400, { code: 'P0001', message: 'recent_login_required' }));
+  c.session = { access_token: 't', refresh_token: 'r', expires_at: 9e9, user: {} };
+  await assert.rejects(() => c.rest('/rpc/delete_my_account', { method: 'POST', body: {} }), (e) => e instanceof ApiError && /sign in again/.test(e.message));
+});
+
+test('the user directory is read through the RPC, not the profiles table', async () => {
+  const paths = [];
+  const api = { rest: async (path, opts) => { paths.push([path, opts?.method]); return []; } };
+  await new StateRepository(api).users();
+  assert.deepEqual(paths, [['/rpc/user_directory', 'POST']]);
+});
+
 

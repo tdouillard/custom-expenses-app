@@ -11,8 +11,29 @@ td.cell-money b { font-size:1rem; }
 .for-tag { display:inline-flex; align-items:center; gap:.3rem; padding:.12rem .55rem; border:1px dashed var(--muted); border-radius:8px; font-size:.78rem; white-space:nowrap; }
 
 
-/* Left border shows the payment state. */
-.expenses-table tbody tr td:first-of-type { background-image:linear-gradient(var(--bar), var(--bar)); background-repeat:no-repeat; background-size:4px 100%; background-position:left; }
+/* Left accent shows the payment state. Rows join into one bar; the first bar starts below the top edge and the last
+   one stops above the bottom edge, both with rounded ends. */
+.expenses-table tbody tr td:first-of-type { position:relative; }
+.expenses-table tbody tr td:first-of-type::before { content:""; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--bar); }
+.expenses-table tbody tr:first-of-type td:first-of-type::before { top:.5rem; border-radius:2px 2px 0 0; }
+.expenses-table tbody tr:last-of-type td:first-of-type::before { bottom:.5rem; border-radius:0 0 2px 2px; }
+
+/* Phone: each expense is a card, and each value is preceded by its column name (data-label). */
+@media (max-width:720px) {
+  .expenses-table, .expenses-table tbody { display:block; width:100%; }
+  .expenses-table colgroup, .expenses-table thead { display:none; }
+  .expenses-table tbody tr { position:relative; display:grid; gap:.5rem; padding:.8rem .8rem .8rem 1.1rem; border-bottom:1px solid var(--border); }
+  .expenses-table tbody tr:last-of-type { border-bottom:0; }
+  .expenses-table tbody tr::before { content:""; position:absolute; left:0; top:.6rem; bottom:.6rem; width:4px; border-radius:2px; background:var(--bar); }
+  .expenses-table tbody tr td { display:flex; align-items:center; justify-content:space-between; gap:.6rem; width:auto; padding:0; border:0; white-space:normal; }
+  .expenses-table tbody tr td::before { content:attr(data-label); color:var(--muted); font-size:.72rem; font-weight:600; text-transform:uppercase; letter-spacing:.06em; }
+  .expenses-table tbody tr td:first-of-type { display:block; }
+  .expenses-table tbody tr td:first-of-type::before { content:none; display:none; }
+  .expenses-table tbody tr td.cell-money b { font-size:1.05rem; }
+  .expenses-table tbody tr td.cell-actions { justify-content:flex-end; }
+  .expenses-table tbody tr td.cell-actions::before { content:none; }
+  .expenses-table .split-list { align-items:flex-end; }
+}
 .row-paid { --bar:var(--ok); } .row-warn { --bar:var(--warn); } .row-due { --bar:var(--red); }
 .expenses-table tbody tr:hover td { background-color:rgba(255,255,255,.025); }
 .row-actions { white-space:nowrap; }

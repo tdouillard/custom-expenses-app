@@ -17,6 +17,9 @@ const KNOWN_ERRORS = {
   reauthentication_not_valid: 'error.reauthentication_not_valid',
   email_exists: 'error.email_exists',
   email_address_invalid: 'error.email_address_invalid',
+  not_signed_in: 'error.notSignedIn',
+  recent_login_required: 'error.recent_login_required',
+  last_admin: 'error.last_admin',
 };
 
 export class ApiError extends Error {
@@ -28,8 +31,9 @@ export class ApiError extends Error {
 }
 
 function messageOf(data, status) {
-  const code = data?.error_code || data?.code;
-  if (KNOWN_ERRORS[code]) return t(KNOWN_ERRORS[code]);
+  for (const code of [data?.error_code, data?.code, data?.message]) {
+    if (KNOWN_ERRORS[code]) return t(KNOWN_ERRORS[code]);
+  }
   if (/invalid login credentials/i.test(data?.msg || data?.message || '')) return t(KNOWN_ERRORS.invalid_credentials);
   return data?.msg || data?.message || data?.error_description || data?.error || `Error ${status}`;
 }
@@ -56,11 +60,12 @@ export class SupabaseClient {
 
   async #call(path, { method = 'GET', body, token, headers = {} } = {}) {
     let res;
+    const raw = body instanceof Blob;
     try {
       res = await this.fetchFn(this.url + path, {
         method,
-        headers: { apikey: this.key, 'Content-Type': 'application/json', Authorization: 'Bearer ' + (token || this.key), ...headers },
-        body: body === undefined ? undefined : JSON.stringify(body),
+        headers: { apikey: this.key, 'Content-Type': raw ? body.type : 'application/json', Authorization: 'Bearer ' + (token || this.key), ...headers },
+        body: body === undefined ? undefined : raw ? body : JSON.stringify(body),
       });
     } catch {
       throw new ApiError(t('error.network'));
@@ -105,6 +110,16 @@ export class SupabaseClient {
     const token = this.session?.access_token;
     this.#writeSession(null);
     if (token) await this.#call('/auth/v1/logout', { method: 'POST', token }).catch(() => {});
+  }
+
+  /* Ends every other session of the signed-in user; this browser stays signed in. */
+  async signOutOthers() {
+    await this.#call('/auth/v1/logout?scope=others', { method: 'POST', token: await this.accessToken() });
+  }
+
+  /* Drops the local session without calling the server (used once the account no longer exists). */
+  forgetSession() {
+    this.#writeSession(null);
   }
 
   async refresh() {
@@ -156,12 +171,35 @@ export class SupabaseClient {
 
   /* PostgREST call authenticated as the signed-in user; refreshes the token once on a 401. */
   async rest(path, options = {}) {
+    return this.#authorized(`/rest/v1${path}`, options);
+  }
+
+  /* Storage API call authenticated as the signed-in user; refreshes the token once on a 401. */
+  async storageCall(path, options = {}) {
+    return this.#authorized(`/storage/v1${path}`, options);
+  }
+
+  /* Private objects of the signed-in user: upload (replaces an existing file), short-lived link, removal. */
+  async uploadObject(bucket, path, blob) {
+    await this.storageCall(`/object/${bucket}/${path}`, { method: 'POST', body: blob, headers: { 'x-upsert': 'true' } });
+  }
+
+  async signedUrl(bucket, path, expiresIn) {
+    const { signedURL } = await this.storageCall(`/object/sign/${bucket}/${path}`, { method: 'POST', body: { expiresIn } });
+    return `${this.url}/storage/v1${signedURL}`;
+  }
+
+  async removeObject(bucket, path) {
+    await this.storageCall(`/object/${bucket}`, { method: 'DELETE', body: { prefixes: [path] } });
+  }
+
+  async #authorized(path, options) {
     try {
-      return await this.#call(`/rest/v1${path}`, { ...options, token: await this.accessToken() });
+      return await this.#call(path, { ...options, token: await this.accessToken() });
     } catch (e) {
       if (e.status !== 401 || !this.session) throw e;
       await this.refresh();
-      return this.#call(`/rest/v1${path}`, { ...options, token: this.session.access_token });
+      return this.#call(path, { ...options, token: this.session.access_token });
     }
   }
 }

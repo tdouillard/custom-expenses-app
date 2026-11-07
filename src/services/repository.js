@@ -31,9 +31,9 @@ export class StateRepository {
     return state;
   }
 
-  /* Users a member can be created from. */
+  /* Users a member can be linked to: names for everyone, emails only for administrators (see user_directory in schema.sql). */
   users() {
-    return this.client.rest('/profiles?select=id,email,name&order=email');
+    return this.client.rest('/rpc/user_directory', { method: 'POST', body: {} });
   }
 
   /* Assigns missing ids in place, then diffs `state` against the last loaded/saved copy. */

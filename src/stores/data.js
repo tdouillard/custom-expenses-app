@@ -14,7 +14,7 @@ export function createDataStore(repository) {
     error: '',
 
     get eventNames() { return eventNames(this.state); },
-    userLabel(id) { const u = this.users.find((x) => x.id === id); return u ? (u.name || u.email) : ''; },
+    userLabel(id) { const u = this.users.find((x) => x.id === id); return u ? (u.name || u.email || t('users.unnamed')) : ''; },
     /* Users not yet linked to a member (plus `keep`, the one already linked to the member being edited). */
     freeUsers(keep = '') {
       const taken = new Set(Object.values(this.state.memberUsers || {}));
