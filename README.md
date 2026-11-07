@@ -4,6 +4,17 @@ Application de partage de dépenses : statique (GitHub Pages), [Alpine.js](https
 
 Site : https://tdouillard.github.io/custom-expenses-app/ (branche `dev`, dossier `/`).
 
+## Vue d'ensemble
+
+![Dashboard](docs/dashboard.png)
+
+**Fonctionnalités principales :**
+- 📊 **Balances** : suivi des soldes (doit recevoir / doit) avec remboursements suggérés
+- 💸 **Tableau des dépenses** : regroupé par événement, trié, filtré, avec statut de paiement et de commande
+- 👥 **Remboursements** : enregistrement des virements effectués
+- 📤 **Partage** : copie du résumé du tableau de bord pour coller dans Signal, WhatsApp, Discord…
+- 🔐 **Accès granulaire** : chaque événement partageable avec des utilisateurs spécifiques
+
 ## Structure
 
 - `index.html` : page, assemble les composants (`data-include`).
