@@ -10,6 +10,7 @@
     "vendor": "node scripts/vendor.js",
     "db:setup": "node scripts/setup-db.js",
     "db:import": "node scripts/import-state.js",
+    "db:backup": "node scripts/backup-db.js",
     "test": "node --test tests/unit/*.test.js",
     "test:e2e": "playwright test",
     "test:all": "npm test && npm run test:e2e"

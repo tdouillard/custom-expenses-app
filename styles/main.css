@@ -1,6 +1,7 @@
 @import url("base.css");
 @import url("layout.css");
 @import url("../src/components/login/login.css");
+@import url("../src/components/admin/admin.css");
 @import url("../src/components/balances/balances.css");
 @import url("../src/components/settlements/settlements.css");
 @import url("../src/components/collection-card/collection-card.css");

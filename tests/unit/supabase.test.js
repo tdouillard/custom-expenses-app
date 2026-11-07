@@ -48,13 +48,34 @@ test('signOut clears the session', async () => {
   assert.equal(c.user, null);
 });
 
-test('repository loads and saves state', async () => {
+test('repository loads shared rows and saves only what changed', async () => {
   const calls = [];
-  const api = { user: { id: 'u1' }, rest: async (path, opts) => { calls.push({ path, opts }); return path.startsWith('/app_state?select') ? [] : null; } };
+  const tables = {
+    '/members': [{ name: 'Ana' }],
+    '/events': [{ id: 'ev1', name: 'Trip', date: '', recipients: [] }],
+    '/expenses': [{ id: 'x1', event_id: 'ev1', data: { label: 'Taxi', amount: 10 } }],
+    '/settlements': [],
+  };
+  const api = { rest: async (path, opts) => { calls.push({ path, opts }); return opts ? null : tables[path.split('?')[0]]; } };
   const repo = new StateRepository(api);
   const state = await repo.load();
-  assert.deepEqual(state.expenses, []);
+  assert.equal(state.expenses[0].event, 'Trip');
+
+  calls.length = 0;
   await repo.save(state);
-  assert.equal(calls[1].opts.method, 'POST');
+  assert.equal(calls.length, 0);
+
+  state.expenses[0].amount = 12;
+  state.events.push({ name: 'Party', date: '', recipients: [] });
+  await repo.save(state);
+  assert.deepEqual(calls.map((c) => c.path), ['/events?on_conflict=id', '/expenses?on_conflict=id']);
+  assert.equal(calls[1].opts.body[0].data.amount, 12);
+  assert.ok(!('event' in calls[1].opts.body[0].data));
+
+  state.events.pop();
+  calls.length = 0;
+  await repo.save(state);
+  assert.equal(calls[0].opts.method, 'DELETE');
 });
+
 

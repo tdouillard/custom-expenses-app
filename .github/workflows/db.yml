@@ -1,0 +1,76 @@
+name: db
+
+# Runs when a merge lands on dev and touches the database files, or manually.
+# No pull_request trigger: PRs and forks can never reach the database secrets.
+on:
+  push:
+    branches: [dev]
+    paths:
+      - supabase/**
+      - scripts/setup-db.js
+      - scripts/backup-db.js
+      - scripts/env.js
+      - .github/workflows/db.yml
+  workflow_dispatch:
+    inputs:
+      action:
+        description: What to run
+        type: choice
+        options: [backup-and-migrate, backup-only, migrate-only]
+        default: backup-and-migrate
+
+permissions: {}
+
+concurrency:
+  group: db
+  cancel-in-progress: false
+
+jobs:
+  test:
+    if: github.ref == 'refs/heads/dev'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+      - run: npm ci --ignore-scripts
+      - run: npm test
+
+  migrate:
+    needs: test
+    if: github.ref == 'refs/heads/dev'
+    runs-on: ubuntu-latest
+    # Secrets live in this environment; restrict its deployment branch to dev in repo settings.
+    environment: production-db
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_DB_HOST: ${{ secrets.SUPABASE_DB_HOST }}
+      SUPABASE_DB_USER: ${{ secrets.SUPABASE_DB_USER }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      ACTION: ${{ inputs.action || 'backup-and-migrate' }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+      - run: npm ci --ignore-scripts
+
+      # Snapshot stored inside Supabase (private `backups` schema): nothing is uploaded to GitHub.
+      - name: Backup
+        if: env.ACTION != 'migrate-only'
+        run: npm run db:backup -- "ci-${GITHUB_RUN_ID}"
+
+      - name: Apply schema
+        if: env.ACTION != 'backup-only'
+        run: npm run db:setup

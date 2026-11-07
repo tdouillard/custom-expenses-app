@@ -12,7 +12,7 @@ Site : https://tdouillard.github.io/custom-expenses-app/ (branche `dev`, dossier
 - `src/config/` : colonnes du tableau et collections (membres, événements) — pilotent le rendu générique.
 - `src/services/` : client Supabase (fetch) et dépôt de l'état.
 - `src/stores/` : stores Alpine (auth, données).
-- `supabase/schema.sql` : table `app_state` + RLS.
+- `supabase/schema.sql` : tables partagées (`profiles`, `members`, `events`, `event_access`, `expenses`, `settlements`) + RLS.
 - Aucun HTML dans le JS ; aucune étape de build.
 
 ## Mise en route
@@ -26,6 +26,14 @@ Site : https://tdouillard.github.io/custom-expenses-app/ (branche `dev`, dossier
 Le mot de passe de la base ne sert qu'aux scripts locaux ; il n'est jamais envoyé au navigateur ni commité.
 
 Importer des données existantes (le compte doit déjà exister) : `npm run db:import -- <email> [state.json]`.
+
+## Accès partagé et administration
+
+- Chaque événement (et ses dépenses) n'est visible que des utilisateurs à qui l'accès a été accordé ; les administrateurs voient tout. L'auteur d'un événement y a accès automatiquement.
+- Les membres et les remboursements sont partagés par tous les utilisateurs connectés.
+- L'onglet **Administration** (visible des administrateurs) permet de gérer les rôles, les accès par événement, et de créer / renommer / supprimer des événements.
+- Premier administrateur : dans l'éditeur SQL de Supabase, `update public.profiles set is_admin = true where email = '<email>';`.
+- Migration : lancer `npm run db:setup` reprend une fois les anciennes lignes `app_state` (leurs propriétaires deviennent administrateurs). La table `app_state` n'est plus utilisée et peut être supprimée ensuite.
 
 ## Authentification
 

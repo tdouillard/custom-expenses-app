@@ -2,6 +2,9 @@ import * as format from './core/format.js';
 import { loadIncludes, loadScript } from './core/include.js';
 import { SupabaseClient } from './services/supabase.js';
 import { StateRepository } from './services/repository.js';
+import { AdminRepository } from './services/admin.js';
+import { createAdminStore } from './stores/admin.js';
+import { adminPage } from './components/admin/admin.js';
 import { createAuthStore } from './stores/auth.js';
 import { createDataStore } from './stores/data.js';
 import { appShell } from './components/app-shell/app-shell.js';
@@ -23,7 +26,8 @@ document.addEventListener('alpine:init', () => {
   Alpine.magic('fmt', () => format);
   Alpine.store('data', createDataStore(new StateRepository(client)));
   Alpine.store('auth', createAuthStore(client));
-  Object.entries({ appShell, collectionCard, expenseDialog, expenses, importDialog, manageDialog, settleDialog, settlementsCard })
+  Alpine.store('admin', createAdminStore(new AdminRepository(client)));
+  Object.entries({ adminPage, appShell, collectionCard, expenseDialog, expenses, importDialog, manageDialog, settleDialog, settlementsCard })
     .forEach(([name, factory]) => Alpine.data(name, factory));
 });
 

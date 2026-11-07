@@ -17,7 +17,12 @@
     <div data-include="src/components/app-shell/header.html"></div>
     <p class="banner" role="alert" x-cloak x-show="$store.data.error" x-text="$store.data.error"></p>
 
-    <main class="dashboard">
+    <nav class="app-nav" x-cloak x-show="$store.admin.isAdmin" aria-label="Pages">
+      <button id="nav-dashboard" :aria-current="$store.admin.view === 'dashboard' ? 'page' : null" @click="$store.admin.view = 'dashboard'">Tableau de bord</button>
+      <button id="nav-admin" :aria-current="$store.admin.view === 'admin' ? 'page' : null" @click="$store.admin.view = 'admin'">Administration</button>
+    </nav>
+
+    <main class="dashboard" x-show="$store.admin.view === 'dashboard'">
       <div class="span-8" data-include="src/components/balances/balances.html"></div>
       <div class="span-4" data-include="src/components/settlements/settlements.html" x-data="settlementsCard"></div>
       <div class="span-8" data-include="src/components/totals/totals.html"></div>
@@ -27,6 +32,9 @@
       </div>
       <div class="span-12" data-include="src/components/expenses/expenses.html" x-data="expenses"></div>
     </main>
+
+    <main class="admin-page" x-cloak x-show="$store.admin.isAdmin && $store.admin.view === 'admin'"
+          data-include="src/components/admin/admin.html" x-data="adminPage"></main>
 
     <div data-include="src/components/expense-dialog/expense-dialog.html" x-data="expenseDialog" @open-expense.window="open($event.detail)"></div>
     <div data-include="src/components/settle-dialog/settle-dialog.html" x-data="settleDialog" @open-settle.window="open()"></div>

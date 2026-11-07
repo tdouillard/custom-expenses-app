@@ -5,3 +5,7 @@ data/
 .~lock*
 test-results/
 playwright-report/
+
+*.dump
+*.dump.age
+*.sql.bak

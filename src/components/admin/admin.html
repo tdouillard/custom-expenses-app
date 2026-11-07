@@ -1,0 +1,63 @@
+<div class="admin">
+  <p class="banner" role="alert" x-cloak x-show="$store.admin.error" x-text="$store.admin.error"></p>
+
+  <section class="card">
+    <h2>Utilisateurs</h2>
+    <p class="hint">Les comptes se créent dans Supabase (Authentication → Users). Cochez les événements auxquels chaque utilisateur peut accéder ; un administrateur voit tout.</p>
+    <ul class="admin-list" id="admin-users">
+      <template x-for="u in $store.admin.users" :key="u.id">
+        <li class="admin-row">
+          <div class="admin-head">
+            <b x-text="u.email"></b>
+            <label class="check">
+              <input type="checkbox" class="admin-flag" :checked="u.is_admin"
+                     :disabled="u.id === $store.auth.user?.id" @change="$store.admin.setAdmin(u.id, $event.target.checked)">
+              Administrateur
+            </label>
+          </div>
+          <div class="chips" x-show="!u.is_admin">
+            <template x-for="ev in $store.admin.events" :key="ev.id">
+              <label class="check chip">
+                <input type="checkbox" class="admin-access" :checked="$store.admin.hasAccess(ev.id, u.id)"
+                       @change="$store.admin.toggleAccess(ev.id, u.id)">
+                <span x-text="ev.name"></span>
+              </label>
+            </template>
+            <span class="muted" x-show="!$store.admin.events.length">Aucun événement</span>
+          </div>
+          <span class="muted" x-show="u.is_admin">Accès à tous les événements</span>
+        </li>
+      </template>
+      <li class="muted" x-show="!$store.admin.users.length">Aucun utilisateur</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2>Événements</h2>
+    <form class="inline" id="admin-event-form" @submit.prevent="save()">
+      <input name="event-name" placeholder="Nom de l'événement" x-model="draft.name" required>
+      <input type="date" name="event-date" x-model="draft.date">
+      <button class="primary" type="submit" x-text="draft.id ? 'Enregistrer' : '+ Ajouter'"></button>
+      <button type="button" x-show="draft.id" @click="reset()">Annuler</button>
+    </form>
+    <div class="form-error" role="alert" x-cloak x-show="formError" x-text="formError"></div>
+    <ul class="admin-list" id="admin-events">
+      <template x-for="ev in $store.admin.events" :key="ev.id">
+        <li class="admin-row">
+          <div class="admin-head">
+            <b x-text="ev.name"></b>
+            <span class="muted" x-text="$fmt.fmtDate(ev.date) || 'Sans date'"></span>
+            <span class="muted" x-text="ev.expenseCount + ' dépense(s)'"></span>
+            <button class="icon-btn" :aria-label="'Modifier ' + ev.name" @click="edit(ev)">✏️</button>
+            <button class="icon-btn" :aria-label="'Supprimer ' + ev.name" @click="remove(ev)">🗑️</button>
+          </div>
+          <div class="chips">
+            <template x-for="u in $store.admin.usersOf(ev.id)" :key="u.id"><span class="chip" x-text="u.email"></span></template>
+            <span class="muted" x-show="!$store.admin.usersOf(ev.id).length">Personne</span>
+          </div>
+        </li>
+      </template>
+      <li class="muted" x-show="!$store.admin.events.length">Aucun événement</li>
+    </ul>
+  </section>
+</div>

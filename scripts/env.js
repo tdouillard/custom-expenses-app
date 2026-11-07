@@ -29,8 +29,8 @@ export async function connectDb(env = loadEnv()) {
   const ref = new URL(env.SUPABASE_URL).hostname.split('.')[0];
   const client = new pg.Client({
     host: env.SUPABASE_DB_HOST || `db.${ref}.supabase.co`,
-    port: 5432,
-    user: 'postgres',
+    port: Number(env.SUPABASE_DB_PORT) || 5432,
+    user: env.SUPABASE_DB_USER || 'postgres',
     password: env.SUPABASE_DB_PASSWORD,
     database: 'postgres',
     ssl: { rejectUnauthorized: false },

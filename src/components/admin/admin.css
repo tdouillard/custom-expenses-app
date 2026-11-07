@@ -1,0 +1,8 @@
+.admin { display:grid; gap:1.25rem; max-width:900px; margin:0 auto; }
+.admin-list { list-style:none; margin:.75rem 0 0; padding:0; display:grid; gap:.75rem; }
+.admin-row { border-radius:16px; padding:.8rem 1rem; box-shadow:var(--inset); display:grid; gap:.5rem; }
+.admin-head { display:flex; align-items:center; gap:.75rem; flex-wrap:wrap; }
+.admin-head .check { margin-left:auto; }
+.check { display:inline-flex; align-items:center; gap:.35rem; cursor:pointer; }
+.app-nav { display:flex; gap:.5rem; padding:0 1rem; }
+.app-nav button[aria-current="page"] { font-weight:700; }
