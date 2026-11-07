@@ -1,13 +1,56 @@
-td.cell-comment { max-width:220px; color:var(--muted); font-size:.85rem; white-space:pre-wrap; }
-td.cell-split { width:1%; white-space:nowrap; }
+﻿td.cell-split { width:1%; white-space:nowrap; }
 .split-list { display:flex; flex-direction:column; align-items:flex-start; gap:.3rem; }
-th.cell-money, td.cell-money { text-align:right; white-space:nowrap; }
+th.cell-money, td.cell-money { text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums; }
+td.cell-money b { font-size:1rem; }
+.sub { font-size:.8rem; color:var(--muted); white-space:pre-wrap; max-width:260px; }
+.expenses-table td { padding-top:.7rem; padding-bottom:.7rem; vertical-align:middle; }
+
+/* Payer is a member (avatar); "Pour" is an outsider (dashed tag). */
+.payer { display:inline-flex; align-items:center; gap:.45rem; white-space:nowrap; }
+.avatar-sm { display:inline-grid; place-items:center; width:1.8rem; height:1.8rem; border-radius:50%; color:#fff; font-size:.68rem; font-weight:700; flex:none; }
+.for-tag { display:inline-flex; align-items:center; gap:.3rem; padding:.12rem .55rem; border:1px dashed var(--muted); border-radius:8px; font-size:.78rem; white-space:nowrap; }
+
+
+/* Left border shows the payment state. */
+.expenses-table tbody tr td:first-of-type { background-image:linear-gradient(var(--bar), var(--bar)); background-repeat:no-repeat; background-size:4px 100%; background-position:left; }
+.row-paid { --bar:var(--ok); } .row-warn { --bar:var(--warn); } .row-due { --bar:var(--red); }
+.expenses-table tbody tr:hover td { background-color:rgba(255,255,255,.025); }
 .row-actions { white-space:nowrap; }
+
 .badge { display:inline-block; padding:.15rem .7rem; border-radius:999px; font-size:.78rem; font-weight:600; }
+.badge.pill { display:inline-flex; align-items:center; gap:.35rem; background:rgba(255,255,255,.05); }
+.badge.pill i { width:.5rem; height:.5rem; border-radius:50%; background:currentColor; }
 .b-ok { color:var(--ok); } .b-warn { color:var(--warn); } .b-bad { color:var(--red); } .b-na { color:var(--muted); }
+
+.sort-btn { display:inline-flex; align-items:center; gap:.3rem; padding:.2rem .3rem; border:0; background:transparent; box-shadow:none; color:var(--muted); font:inherit; font-size:.72rem; font-weight:600; text-transform:uppercase; letter-spacing:.07em; cursor:pointer; border-radius:8px; }
+.sort-btn:hover { color:var(--text); }
+.sort-btn .sort-arrow { font-size:.7rem; opacity:.5; }
+.sort-btn.active { color:var(--accent2); }
+.sort-btn.active .sort-arrow { opacity:1; }
+th.cell-money .sort-btn { margin-left:auto; }
 
 /* Header cells double as filters: the select looks like the column title and highlights when active. */
 .th-filter { padding:.2rem 1.2rem .2rem .1rem; background:transparent; box-shadow:none; color:var(--muted); font-size:.72rem; font-weight:600; text-transform:uppercase; letter-spacing:.07em; cursor:pointer; border-radius:8px; }
 .th-filter:focus { box-shadow:0 0 0 2px var(--accent); }
 .th-filter.active { color:var(--accent2); background:rgba(45,212,255,.1); padding-left:.5rem; }
 .th-filter option { background:var(--bg); color:var(--text); text-transform:none; letter-spacing:0; font-weight:400; }
+
+/* One table per event: the event header sits outside the tables, whose columns share fixed widths. */
+.event-groups { display:grid; gap:1rem; margin-top:.7rem; }
+.event-group .table-wrap { margin-top:.3rem; }
+.expenses-table { table-layout:fixed; }
+.expenses-toolbar { display:flex; gap:.75rem; align-items:center; flex-wrap:wrap; margin-top:.7rem; }
+.toolbar-event { display:inline-flex; align-items:center; gap:.4rem; }
+.group-head { display:flex; align-items:center; gap:.6rem; padding:.55rem .8rem; border-radius:12px; background:rgba(79,140,255,.08); }
+.group-head .group-total { margin-left:auto; }
+.expenses-total { display:flex; justify-content:flex-end; gap:.75rem; margin-top:1rem; padding:.2rem .8rem; font-size:1.05rem; }
+
+.group-name { font-weight:700; }
+.expenses-table th { white-space:nowrap; }
+
+/* Multi-select event filter: a summary button opening a checkbox list. */
+.multi-filter { position:relative; }
+.multi-filter summary { list-style:none; cursor:pointer; padding:.35rem .7rem; border-radius:10px; font-size:.78rem; font-weight:600; color:var(--muted); box-shadow:var(--inset); position:relative; }
+.multi-filter summary::-webkit-details-marker { display:none; }
+.multi-filter summary.active { color:var(--accent2); }
+.multi-menu { position:absolute; z-index:20; top:calc(100% + .4rem); left:0; min-width:14rem; display:grid; gap:.35rem; padding:.7rem; border-radius:14px; background:#1d1a22; border:1px solid var(--border); box-shadow:0 14px 40px rgba(0,0,0,.55); }

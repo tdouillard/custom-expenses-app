@@ -1,10 +1,10 @@
-import test from 'node:test';
+﻿import test from 'node:test';
 import assert from 'node:assert/strict';
 import { splitEqually, computeBalances, suggestTransfers } from '../../src/core/logic.js';
 import { eur, norm, parseList, balanceLabel, signClass } from '../../src/core/format.js';
 import { emptyState, normalizeState, byEventDate } from '../../src/core/state.js';
 import { parseCsv, parseAmount } from '../../src/core/csv.js';
-import { filterExpenses, sumAmounts, nextOrder } from '../../src/core/expenses.js';
+import { rowStatus, filterExpenses, sumAmounts, nextOrder } from '../../src/core/expenses.js';
 import { linkMember } from '../../src/core/collections.js';
 
 test('splitEqually distributes cents', () => {
@@ -77,4 +77,37 @@ test('linkMember renames the member to the user and keeps its expenses', () => {
   assert.deepEqual(s.memberUsers, { Al: 'u1' });
   assert.deepEqual(linkMember(s, 'u2', 'Al'), {});
   assert.deepEqual(s.memberUsers, { Al: 'u2' });
+});
+
+test('filterExpenses sorts by any column, defaulting to event date', () => {
+  const s = {
+    members: [], settlements: [], memberUsers: {},
+    events: [{ name: 'B', date: '2024-01-01', recipients: [] }, { name: 'A', date: '2024-06-01', recipients: [] }],
+    expenses: [
+      { id: '1', event: 'A', label: 'zeta', amount: 5, paidBy: 'x' },
+      { id: '2', event: 'B', label: 'alpha', amount: 50, paidBy: '' },
+      { id: '3', event: 'A', label: '', amount: 20, paidBy: 'a' },
+    ],
+  };
+  const ids = (sort) => filterExpenses(s, {}, sort).map((e) => e.id).join('');
+  assert.equal(ids(null), '213');
+  assert.equal(ids({ key: 'event', dir: 'desc' }), '132');
+  assert.equal(ids({ key: 'amount', dir: 'desc' }), '231');
+  assert.equal(ids({ key: 'label', dir: 'asc' }), '213');
+  assert.equal(ids({ key: 'paidBy', dir: 'asc' }), '312');
+});
+
+test('event filter accepts several events', () => {
+  const s = { members: [], settlements: [], memberUsers: {}, events: [{ name: 'A', date: '', recipients: [] }, { name: 'B', date: '', recipients: [] }, { name: 'C', date: '', recipients: [] }],
+    expenses: [{ id: '1', event: 'A', amount: 1 }, { id: '2', event: 'B', amount: 1 }, { id: '3', event: 'C', amount: 1 }] };
+  assert.equal(filterExpenses(s, { event: ['A', 'C'] }).map((e) => e.id).join(''), '13');
+  assert.equal(filterExpenses(s, { event: [] }).length, 3);
+});
+
+test('rowStatus: orange when order pending, else red when unpaid, else green', () => {
+  assert.equal(rowStatus({ due: true, order: 'waiting' }), 'row-warn');
+  assert.equal(rowStatus({ due: false, order: 'waiting' }), 'row-warn');
+  assert.equal(rowStatus({ due: true, order: 'na' }), 'row-due');
+  assert.equal(rowStatus({ due: false, order: 'sent' }), 'row-paid');
+  assert.equal(rowStatus({ due: false, order: 'na' }), 'row-paid');
 });

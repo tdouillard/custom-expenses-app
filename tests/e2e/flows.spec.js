@@ -1,4 +1,4 @@
-﻿import { test, expect } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 import { fakeSupabase, login } from './fake-supabase.js';
 
 test('manage members and events through the popup, then add and filter expenses', async ({ page }) => {

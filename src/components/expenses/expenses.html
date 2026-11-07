@@ -1,85 +1,133 @@
-<section class="card" id="expenses-card">
+﻿<section class="card" id="expenses-card">
   <div class="card-head">
     <h2>Dépenses</h2>
     <div class="head-actions">
       <button id="import-btn" @click="$dispatch('open-import')">⬆️ Importer CSV</button>
-      <button id="del-selected" :disabled="!selected.length" @click="removeSelected()"
-              x-text="selected.length ? `🗑️ Supprimer la sélection (${selected.length})` : '🗑️ Supprimer la sélection'"></button>
     </div>
   </div>
 
-  <div class="table-wrap">
-    <table id="expenses">
-      <thead>
-        <tr>
-          <template x-for="col in columns" :key="col.key">
-            <th :class="'cell-' + col.cell">
-              <template x-if="col.cell === 'select'">
-                <input type="checkbox" id="select-all" title="Tout sélectionner" aria-label="Tout sélectionner"
-                       :checked="allSelected" @change="toggleAll()">
-              </template>
-              <template x-if="col.filter">
-                <select class="th-filter" :id="'filter-' + col.filter.key" :class="{ active: filters[col.filter.key] }"
-                        :aria-label="'Filtrer par ' + col.label" x-model="filters[col.filter.key]">
-                  <option value="" :selected="!filters[col.filter.key]" x-text="col.label"></option>
-                  <template x-for="o in optionsFor(col.filter.options)" :key="o.value">
-                    <option :value="o.value" :selected="o.value === filters[col.filter.key]" x-text="o.label"></option>
-                  </template>
-                </select>
-              </template>
-              <template x-if="!col.filter && col.cell !== 'select'">
-                <span x-text="col.label"></span>
-              </template>
-            </th>
-          </template>
-        </tr>
-      </thead>
-      <tbody id="rows">
-        <template x-for="e in rows" :key="e.id">
-          <tr>
-            <template x-for="col in columns" :key="col.key">
-              <td :class="'cell-' + col.cell">
-                <template x-if="col.cell === 'select'">
-                  <input type="checkbox" :data-select="e.id" :aria-label="'Sélectionner ' + e.label"
-                         :checked="selected.includes(e.id)" @change="toggle(e.id)">
-                </template>
-                <template x-if="col.cell === 'text'"><span x-text="e[col.key]"></span></template>
-                <template x-if="col.cell === 'money'"><span x-text="$fmt.eur(e.amount)"></span></template>
-                <template x-if="col.cell === 'comment'"><span x-text="e.comment"></span></template>
-                <template x-if="col.cell === 'split'">
-                  <div class="split-list">
-                    <template x-for="m in participants(e)" :key="m">
-                      <span class="chip"><span x-text="m"></span> <b x-text="$fmt.eur(e.split[m])"></b></span>
-                    </template>
-                  </div>
-                </template>
-                <template x-if="col.cell === 'payment'">
-                  <button class="badge" :class="paymentInfo(e).cls" :data-toggle-due="e.id"
-                          x-text="paymentInfo(e).label" @click="togglePayment(e)"></button>
-                </template>
-                <template x-if="col.cell === 'order'">
-                  <button class="badge" :class="orderInfo(e.order).cls" :data-cycle-order="e.id"
-                          x-text="orderInfo(e.order).label" @click="cycleOrder(e)"></button>
-                </template>
-                <template x-if="col.cell === 'actions'">
-                  <span class="row-actions">
-                    <button class="link" :aria-label="'Modifier ' + e.label" :data-edit="e.id" @click="edit(e)">✏️</button>
-                    <button class="link" :aria-label="'Supprimer ' + e.label" :data-del="e.id" @click="remove(e)">🗑️</button>
-                  </span>
-                </template>
-              </td>
+  <div class="expenses-toolbar">
+    <template x-if="eventColumn">
+      <div class="toolbar-event" :aria-sort="ariaSort('event')">
+        <details class="multi-filter" id="filter-event" @click.outside="$el.open = false">
+          <summary :class="{ active: filters.event.length }" aria-label="Filtrer par événement" x-text="eventSummary()"></summary>
+          <div class="multi-menu">
+            <template x-for="o in optionsFor(eventColumn.filter.options)" :key="o.value">
+              <label class="check">
+                <input type="checkbox" :value="o.value" :checked="filters.event.includes(o.value)" @change="toggleEvent(o.value)">
+                <span x-text="o.label"></span>
+              </label>
             </template>
-          </tr>
-        </template>
-        <tr x-show="!rows.length"><td class="muted" :colspan="columns.length">Aucune dépense</td></tr>
-      </tbody>
-      <tfoot>
-        <tr>
-          <td :colspan="amountIndex">Total</td>
-          <td class="cell-money" id="expenses-total" x-text="$fmt.eur(total)"></td>
-          <td :colspan="columns.length - amountIndex - 1"></td>
-        </tr>
-      </tfoot>
-    </table>
+            <button type="button" class="link" x-show="filters.event.length" @click="filters.event = []">Tout afficher</button>
+          </div>
+        </details>
+        <button type="button" class="sort-btn" :class="{ active: sortDir('event') }" data-sort="event"
+                title="Trier les événements" aria-label="Trier les événements" @click="toggleSort('event')">
+          <span>Trier les événements</span>
+          <span class="sort-arrow" aria-hidden="true" x-text="sortDir('event') === 'asc' ? '▲' : sortDir('event') === 'desc' ? '▼' : '↕'"></span>
+        </button>
+      </div>
+    </template>
+  </div>
+
+  <div id="rows" class="event-groups">
+    <template x-for="(g, gi) in groups" :key="g.event">
+      <section class="event-group">
+        <header class="group-head">
+          <span class="group-name" x-text="'🗓️ ' + g.event"></span>
+          <span class="muted" x-text="($fmt.fmtDate(g.date) || 'Sans date') + ' · ' + g.rows.length + ' dépense(s)'"></span>
+          <b class="group-total" x-text="$fmt.eur(g.total)"></b>
+        </header>
+
+        <div class="table-wrap">
+          <table class="expenses-table">
+            <colgroup>
+              <template x-for="col in columns" :key="col.key"><col :style="'width:' + col.width"></template>
+            </colgroup>
+            <thead x-show="gi === 0">
+              <tr>
+                <template x-for="col in columns" :key="col.key">
+                  <th :class="'cell-' + col.cell" :aria-sort="col.sort ? ariaSort(col.key) : null">
+                    <template x-if="col.filter">
+                      <select class="th-filter" :id="'filter-' + col.filter.key" :class="{ active: filters[col.filter.key] }"
+                              :aria-label="'Filtrer par ' + col.label" x-model="filters[col.filter.key]">
+                        <option value="" :selected="!filters[col.filter.key]" x-text="col.label"></option>
+                        <template x-for="o in optionsFor(col.filter.options)" :key="o.value">
+                          <option :value="o.value" :selected="o.value === filters[col.filter.key]" x-text="o.label"></option>
+                        </template>
+                      </select>
+                    </template>
+                    <template x-if="!col.filter && !col.sort">
+                      <span x-text="col.label"></span>
+                    </template>
+                    <template x-if="col.sort">
+                      <button type="button" class="sort-btn" :class="{ active: sortDir(col.key) }" :data-sort="col.key"
+                              :title="'Trier par ' + col.label" :aria-label="'Trier par ' + col.label" @click="toggleSort(col.key)">
+                        <span x-show="!col.filter" x-text="col.label"></span>
+                        <span class="sort-arrow" aria-hidden="true" x-text="sortDir(col.key) === 'asc' ? '▲' : sortDir(col.key) === 'desc' ? '▼' : '↕'"></span>
+                      </button>
+                    </template>
+                  </th>
+                </template>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-for="e in g.rows" :key="e.id">
+                <tr :class="rowStatus(e)">
+                  <template x-for="col in columns" :key="col.key">
+                    <td :class="'cell-' + col.cell">
+                      <template x-if="col.cell === 'label'">
+                        <div>
+                          <b x-text="e.label"></b>
+                          <div class="sub" x-show="e.comment" x-text="e.comment"></div>
+                        </div>
+                      </template>
+                      <template x-if="col.cell === 'payer'">
+                        <span class="payer" x-show="e.paidBy">
+                          <span class="avatar-sm" :style="avatarStyle(e.paidBy)" x-text="initials(e.paidBy)"></span>
+                          <span x-text="e.paidBy"></span>
+                        </span>
+                      </template>
+                      <template x-if="col.cell === 'recipient'">
+                        <span>
+                          <span class="for-tag" x-show="e.recipient" x-text="'🎁 ' + e.recipient"></span>
+                          <span class="muted" x-show="!e.recipient">—</span>
+                        </span>
+                      </template>
+                      <template x-if="col.cell === 'money'"><b x-text="$fmt.eur(e.amount)"></b></template>
+                      <template x-if="col.cell === 'split'">
+                        <div class="split-list">
+                          <template x-for="m in participants(e)" :key="m">
+                            <span class="chip"><span x-text="m"></span> <b x-text="$fmt.eur(e.split[m])"></b></span>
+                          </template>
+                        </div>
+                      </template>
+                      <template x-if="col.cell === 'payment'">
+                        <span class="badge pill" :class="paymentInfo(e).cls"><i></i><span x-text="paymentInfo(e).label"></span></span>
+                      </template>
+                      <template x-if="col.cell === 'order'">
+                        <span class="badge pill" :class="orderInfo(e.order).cls"><i></i><span x-text="orderInfo(e.order).label"></span></span>
+                      </template>
+                      <template x-if="col.cell === 'actions'">
+                        <span class="row-actions">
+                          <button class="link" :aria-label="'Modifier ' + e.label" :data-edit="e.id" @click="edit(e)">✏️</button>
+                          <button class="link" :aria-label="'Supprimer ' + e.label" :data-del="e.id" @click="remove(e)">🗑️</button>
+                        </span>
+                      </template>
+                    </td>
+                  </template>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </template>
+    <p class="muted" x-show="!rows.length">Aucune dépense</p>
+  </div>
+
+  <div class="expenses-total">
+    <span>Total</span>
+    <b id="expenses-total" x-text="$fmt.eur(total)"></b>
   </div>
 </section>
